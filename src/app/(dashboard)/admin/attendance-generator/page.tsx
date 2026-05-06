@@ -101,37 +101,37 @@ export default function AttendanceGeneratorPage() {
         })
       }
 
-      // --- 1. LLENADO DE ENCABEZADO (Coordenadas calibradas segn imagen) ---
-      // Tema (debajo de etiqueta TEMA)
-      drawText(course?.title || '', 65, 222, 10, true)
+      // --- 1. LLENADO DE ENCABEZADO (Coordenadas recalibradas) ---
+      // Tema (Alineado a la derecha de la etiqueta TEMA)
+      drawText(course?.title || '', 120, 182, 10, true)
       
       // Instructor
-      drawText(instructor, 65, 248, 9)
+      drawText(instructor, 120, 208, 9)
       
       // Tipo (X en el cuadro correspondiente)
       if (trainingType === 'Interna') {
-        drawText('X', 387, 218, 12, true) // Cuadro Interna
+        drawText('X', 387, 203, 12, true) 
       } else {
-        drawText('X', 460, 218, 12, true) // Cuadro Externa
+        drawText('X', 460, 203, 12, true) 
       }
 
       // Fecha
-      drawText(trainingDate, 65, 273, 9)
+      drawText(trainingDate, 120, 233, 9)
       
-      // Duracin
-      drawText(duration, 335, 273, 9)
+      // Duración
+      drawText(duration, 340, 233, 9)
 
       // --- 2. REGISTRO DE ASISTENTES (Tabla) ---
-      let yPos = 325 // Inicio de la primera fila
-      const rowHeight = 19.5 // Altura de cada celda aprox
+      let yPos = 286 // Ajustado para que la primera fila coincida
+      const rowHeight = 19.8 
 
       attendees.forEach((user, index) => {
-        if (index < 23) { // Capacidad de la hoja
+        if (index < 25) { 
           // Columna Nombre
-          drawText(user.displayName, 45, yPos, 8)
+          drawText(user.displayName, 55, yPos, 8)
           
-          // Columna Puesto (Saltamos la de firma que es la del medio)
-          drawText(user.puesto, 385, yPos, 7)
+          // Columna Puesto
+          drawText(user.puesto, 395, yPos, 7)
           
           yPos += rowHeight
         }
