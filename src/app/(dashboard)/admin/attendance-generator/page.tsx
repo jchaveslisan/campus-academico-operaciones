@@ -79,6 +79,14 @@ export default function AttendanceGeneratorPage() {
     setCoords(prev => ({ ...prev, [key]: Number((prev[key] + amount).toFixed(1)) }))
   }
 
+  const toggleUser = (userId: string) => {
+    setSelectedUserIds(prev => 
+      prev.includes(userId) 
+        ? prev.filter(id => id !== userId) 
+        : [...prev, userId]
+    )
+  }
+
   const copyConfig = () => {
     navigator.clipboard.writeText(JSON.stringify(coords, null, 2))
     setCopied(true)
