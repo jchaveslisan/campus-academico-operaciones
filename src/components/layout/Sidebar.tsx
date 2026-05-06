@@ -22,6 +22,7 @@ const personalNav = [
 const adminNav = [
   { href: '/admin',              label: 'Panel General',  icon: BarChart3 },
   { href: '/admin/courses',      label: 'Cursos',          icon: BookMarked },
+  { href: '/admin/attendance-generator', label: 'Asistente de Firmas', icon: FileText },
   { href: '/admin/users',        label: 'Colaboradores',   icon: Users },
   { href: '/admin/enrollments',  label: 'Asignaciones',    icon: ClipboardList },
   { href: '/admin/reports',      label: 'Reportes',        icon: BarChart3 },
