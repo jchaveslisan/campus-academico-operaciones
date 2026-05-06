@@ -90,7 +90,7 @@ export default function AttendanceGeneratorPage() {
       const attendees = users.filter(u => selectedUserIds.includes(u.uid))
 
       // Load the template
-      const existingPdfBytes = await fetch('/F-RH-02 Control de actividades de capacitación (V.01).pdf').then(res => res.arrayBuffer())
+      const existingPdfBytes = await fetch('/machote-asistencia.pdf').then(res => res.arrayBuffer())
       const pdfDoc = await PDFDocument.load(existingPdfBytes)
       const pages = pdfDoc.getPages()
       const firstPage = pages[0]
