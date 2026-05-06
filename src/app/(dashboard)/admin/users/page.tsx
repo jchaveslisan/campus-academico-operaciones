@@ -136,7 +136,7 @@ export default function AdminUsersPage() {
                     required 
                     placeholder="Ej: Juan Pérez" 
                     value={formData.displayName}
-                    onChange={e => setFormData({...formData, displayName: e.target.value})}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, displayName: e.target.value})}
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -146,7 +146,7 @@ export default function AdminUsersPage() {
                       required 
                       placeholder="Identificación" 
                       value={formData.cedula}
-                      onChange={e => setFormData({...formData, cedula: e.target.value})}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, cedula: e.target.value})}
                     />
                   </div>
                   <div className="space-y-2">
@@ -157,7 +157,7 @@ export default function AdminUsersPage() {
                       placeholder="****" 
                       maxLength={6}
                       value={formData.pin}
-                      onChange={e => setFormData({...formData, pin: e.target.value.replace(/\D/g, '')})}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, pin: e.target.value.replace(/\D/g, '')})}
                     />
                   </div>
                 </div>
@@ -170,7 +170,7 @@ export default function AdminUsersPage() {
                     type="email" 
                     placeholder={formData.role === 'jefatura' ? 'juan.perez@empresa.com' : 'Opcional para colaboradores'} 
                     value={formData.email}
-                    onChange={e => setFormData({...formData, email: e.target.value})}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, email: e.target.value})}
                   />
                 </div>
                 <div className="space-y-2">
@@ -195,7 +195,7 @@ export default function AdminUsersPage() {
                     required 
                     placeholder="Ej: Operario de Máquina" 
                     value={formData.puesto}
-                    onChange={e => setFormData({...formData, puesto: e.target.value})}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, puesto: e.target.value})}
                   />
                 </div>
                 <div className="space-y-2">
@@ -233,7 +233,7 @@ export default function AdminUsersPage() {
                 placeholder="Buscar por nombre, cédula o puesto..."
                 className="pl-8"
                 value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
               />
             </div>
             <Button variant="outline" size="icon">

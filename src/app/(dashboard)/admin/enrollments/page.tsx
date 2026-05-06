@@ -143,7 +143,7 @@ export default function AdminEnrollmentsPage() {
                 type="date" 
                 className="h-12"
                 value={dueDate}
-                onChange={e => setDueDate(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDueDate(e.target.value)}
               />
               <p className="text-[10px] text-muted-foreground">Si no se especifica, el curso no tendrá fecha de vencimiento inicial para completarse.</p>
             </div>

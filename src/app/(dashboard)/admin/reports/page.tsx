@@ -94,7 +94,7 @@ export default function AdminReportsPage() {
             placeholder="Filtrar por colaborador..."
             className="pl-8"
             value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
           />
         </div>
         <div className="flex items-center gap-4 text-xs">

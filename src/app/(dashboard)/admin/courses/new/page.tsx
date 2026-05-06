@@ -131,7 +131,7 @@ export default function NewCoursePage() {
                 <Input 
                   placeholder="Ej: SOP-LIM-001: Limpieza de Equipos" 
                   value={formData.title}
-                  onChange={e => setFormData({...formData, title: e.target.value})}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, title: e.target.value})}
                 />
               </div>
               <div className="space-y-2">
@@ -140,7 +140,7 @@ export default function NewCoursePage() {
                   placeholder="Resumen del contenido para el colaborador..." 
                   className="min-h-[100px]"
                   value={formData.description}
-                  onChange={e => setFormData({...formData, description: e.target.value})}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData({...formData, description: e.target.value})}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -149,14 +149,14 @@ export default function NewCoursePage() {
                   <Input 
                     type="number" 
                     value={formData.validityDays}
-                    onChange={e => setFormData({...formData, validityDays: parseInt(e.target.value)})}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, validityDays: parseInt(e.target.value)})}
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Etiquetas (separadas por coma)</label>
                   <Input 
                     placeholder="BPM, Limpieza, Producción" 
-                    onChange={e => setFormData({...formData, tags: e.target.value.split(',').map(s => s.trim())})}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, tags: e.target.value.split(',').map(s => s.trim())})}
                   />
                 </div>
               </div>
@@ -176,7 +176,7 @@ export default function NewCoursePage() {
                 <Input 
                   placeholder="https://..." 
                   value={formData.videoUrl}
-                  onChange={e => setFormData({...formData, videoUrl: e.target.value})}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, videoUrl: e.target.value})}
                 />
                 <p className="text-[10px] text-muted-foreground">Asegúrese de que el video tenga permisos de visualización para los colaboradores.</p>
               </div>
@@ -185,7 +185,7 @@ export default function NewCoursePage() {
                 <Input 
                   placeholder="https://..." 
                   value={formData.documentUrl}
-                  onChange={e => setFormData({...formData, documentUrl: e.target.value})}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, documentUrl: e.target.value})}
                 />
               </div>
             </CardContent>
@@ -223,7 +223,7 @@ export default function NewCoursePage() {
                     <Input 
                       placeholder="Escriba la pregunta aquí..." 
                       value={q.text}
-                      onChange={e => handleQuestionChange(qIdx, e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleQuestionChange(qIdx, e.target.value)}
                     />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {q.options.map((opt, oIdx) => (
