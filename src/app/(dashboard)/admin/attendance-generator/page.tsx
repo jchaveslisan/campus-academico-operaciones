@@ -35,6 +35,7 @@ export default function AttendanceGeneratorPage() {
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [showCalibration, setShowCalibration] = useState(false)
   
   // Form State
   const [selectedCourseId, setSelectedCourseId] = useState('')
@@ -45,15 +46,15 @@ export default function AttendanceGeneratorPage() {
   const [trainingDate, setTrainingDate] = useState(new Date().toISOString().split('T')[0])
   const [duration, setDuration] = useState('')
 
-  // TOTAL CALIBRATION STATE
+  // TOTAL CALIBRATION STATE (Configuración Maestra)
   const [coords, setCoords] = useState({
-    temaX: 115, temaY: 178,
-    instructorX: 115, instructorY: 205,
-    fechaX: 115, fechaY: 230,
-    duracionX: 340, duracionY: 230,
-    typeInternaX: 387, typeExternaX: 460, typeY: 203,
-    tableX: 55, tableY: 286,
-    puestoX: 395, rowHeight: 19.8
+    temaX: 80, temaY: 165,
+    instructorX: 115, instructorY: 185,
+    fechaX: 105, fechaY: 210,
+    duracionX: 370, duracionY: 210,
+    typeInternaX: 382, typeExternaX: 453, typeY: 185,
+    tableX: 55, tableY: 280,
+    puestoX: 410, rowHeight: 23.5
   })
 
   useEffect(() => {
@@ -91,7 +92,7 @@ export default function AttendanceGeneratorPage() {
     navigator.clipboard.writeText(JSON.stringify(coords, null, 2))
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
-    toast.success('Configuración copiada al portapapeles')
+    toast.success('Configuración copiada')
   }
 
   const generatePDF = async () => {
@@ -152,10 +153,10 @@ export default function AttendanceGeneratorPage() {
       const blob = new Blob([pdfBytes], { type: 'application/pdf' })
       const link = document.createElement('a')
       link.href = URL.createObjectURL(blob)
-      link.download = `F-RH-02_PRODUCCION.pdf`
+      link.download = `F-RH-02_CALIBRADO.pdf`
       link.click()
       
-      toast.success('PDF generado con éxito')
+      toast.success('PDF generado')
     } catch (error) {
       console.error(error)
       toast.error('Error al generar el PDF')
@@ -171,21 +172,19 @@ export default function AttendanceGeneratorPage() {
   )
 
   const ControlGroup = ({ title, xKey, yKey, xVal, yVal }: any) => (
-    <div className="space-y-2 pb-4 border-b border-amber-200/50">
+    <div className="space-y-2 pb-3 border-b border-amber-200/50">
       <div className="flex justify-between items-center">
-        <p className="text-[10px] font-black text-amber-900 uppercase tracking-tighter">{title}</p>
-        <Badge variant="outline" className="text-[10px] font-mono bg-white">X:{xVal} Y:{yVal}</Badge>
+        <p className="text-[10px] font-black text-amber-900 uppercase">{title}</p>
+        <Badge variant="outline" className="text-[9px] font-mono bg-white">X:{xVal} Y:{yVal}</Badge>
       </div>
       <div className="flex gap-2">
-        <div className="flex-1 flex bg-white rounded-lg border border-amber-200 p-1">
+        <div className="flex-1 flex bg-white rounded-lg border border-amber-200 p-0.5">
           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => adjust(xKey, -1)}><ChevronLeft className="w-3 h-3"/></Button>
           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => adjust(xKey, 1)}><ChevronRight className="w-3 h-3"/></Button>
-          <div className="flex-1 text-center self-center text-[9px] font-bold text-slate-400">X</div>
         </div>
-        <div className="flex-1 flex bg-white rounded-lg border border-amber-200 p-1">
+        <div className="flex-1 flex bg-white rounded-lg border border-amber-200 p-0.5">
           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => adjust(yKey, -1)}><ChevronUp className="w-3 h-3"/></Button>
           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => adjust(yKey, 1)}><ChevronDown className="w-3 h-3"/></Button>
-          <div className="flex-1 text-center self-center text-[9px] font-bold text-slate-400">Y</div>
         </div>
       </div>
     </div>
@@ -193,23 +192,30 @@ export default function AttendanceGeneratorPage() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-20 p-4">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center px-2">
         <div>
-          <h1 className="text-3xl font-black text-slate-900">Configuración F-RH-02</h1>
-          <Badge variant="secondary" className="mt-1">MODO AJUSTE FINO</Badge>
+          <h1 className="text-3xl font-black text-slate-900">Asistente F-RH-02</h1>
+          <p className="text-muted-foreground text-sm">Generación de registros oficiales con calibración.</p>
         </div>
-        <Button onClick={copyConfig} variant="outline" className="gap-2 border-primary/20 hover:bg-primary/5">
-          {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-          Copiar Configuración
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setShowCalibration(!showCalibration)} variant="outline" className="gap-2">
+            <Settings2 className="w-4 h-4" />
+            {showCalibration ? 'Ocultar Panel' : 'Ajustar Posiciones'}
+          </Button>
+          {showCalibration && (
+            <Button onClick={copyConfig} variant="ghost" size="icon" className="text-slate-400">
+              {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* INPUTS PANEL */}
         <div className="lg:col-span-3 space-y-4">
-          <Card className="shadow-xl">
+          <Card className="shadow-lg">
             <CardHeader className="py-3 bg-slate-50 border-b">
-              <CardTitle className="text-xs uppercase font-black">1. Datos Sesión</CardTitle>
+              <CardTitle className="text-xs uppercase font-black">1. Datos</CardTitle>
             </CardHeader>
             <CardContent className="p-4 space-y-4">
               <Select value={selectedCourseId} onValueChange={setSelectedCourseId}>
@@ -228,58 +234,54 @@ export default function AttendanceGeneratorPage() {
                   <SelectItem value="Externa">Externa</SelectItem>
                 </SelectContent>
               </Select>
-              <Button onClick={generatePDF} disabled={generating || loading} className="w-full h-12 font-bold bg-slate-900">
-                {generating ? <Clock className="w-4 h-4 animate-spin" /> : <Printer className="w-4 h-4 mr-2" />}
-                PROBAR PDF
+              <Button onClick={generatePDF} disabled={generating || loading} className="w-full h-12 font-bold bg-slate-900 text-white hover:bg-slate-800">
+                <Printer className="w-4 h-4 mr-2" /> {generating ? 'Generando...' : 'IMPRIMIR PDF'}
               </Button>
             </CardContent>
           </Card>
         </div>
 
-        {/* CALIBRATION PANEL */}
-        <div className="lg:col-span-4 space-y-4">
-          <Card className="shadow-xl border-amber-200 bg-amber-50/20">
-            <CardHeader className="py-2.5 bg-amber-100/30 flex items-center justify-between border-b border-amber-200">
-              <CardTitle className="text-[10px] font-black text-amber-900 tracking-widest flex items-center gap-2">
-                <Settings2 className="w-4 h-4" /> CALIBRACIÓN INDIVIDUAL
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 space-y-4 max-h-[70vh] overflow-y-auto scrollbar-thin">
-              <ControlGroup title="Tema" xKey="temaX" yKey="temaY" xVal={coords.temaX} yVal={coords.temaY} />
-              <ControlGroup title="Instructor" xKey="instructorX" yKey="instructorY" xVal={coords.instructorX} yVal={coords.instructorY} />
-              <ControlGroup title="Fecha" xKey="fechaX" yKey="fechaY" xVal={coords.fechaX} yVal={coords.fechaY} />
-              <ControlGroup title="Duración" xKey="duracionX" yKey="duracionY" xVal={coords.duracionX} yVal={coords.duracionY} />
-              
-              <div className="space-y-2 pb-4 border-b border-amber-200/50">
-                <p className="text-[10px] font-black text-amber-900 uppercase">Marcas de Tipo (X, Y)</p>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="bg-white p-1 rounded-lg border border-amber-200 flex justify-between items-center">
-                    <span className="text-[8px] font-bold ml-2">INT: {coords.typeInternaX}</span>
-                    <div className="flex">
-                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => adjust('typeInternaX', -1)}><ChevronLeft className="w-3 h-3"/></Button>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => adjust('typeInternaX', 1)}><ChevronRight className="w-3 h-3"/></Button>
+        {/* CALIBRATION PANEL (Condicional) */}
+        {showCalibration && (
+          <div className="lg:col-span-4 space-y-4">
+            <Card className="shadow-xl border-amber-200 bg-amber-50/20">
+              <CardHeader className="py-2.5 bg-amber-100/30 flex items-center justify-between border-b border-amber-200">
+                <CardTitle className="text-[10px] font-black text-amber-900 tracking-widest uppercase">Calibración Detallada</CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 space-y-3 max-h-[70vh] overflow-y-auto scrollbar-thin">
+                <ControlGroup title="Tema" xKey="temaX" yKey="temaY" xVal={coords.temaX} yVal={coords.temaY} />
+                <ControlGroup title="Instructor" xKey="instructorX" yKey="instructorY" xVal={coords.instructorX} yVal={coords.instructorY} />
+                <ControlGroup title="Fecha" xKey="fechaX" yKey="fechaY" xVal={coords.fechaX} yVal={coords.fechaY} />
+                <ControlGroup title="Duración" xKey="duracionX" yKey="duracionY" xVal={coords.duracionX} yVal={coords.duracionY} />
+                
+                <div className="space-y-2 pb-4 border-b border-amber-200/50">
+                  <p className="text-[10px] font-black text-amber-900 uppercase">Marcas de Tipo</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="bg-white p-1 rounded-lg border border-amber-200 flex justify-between items-center">
+                      <span className="text-[8px] font-bold ml-2">INT: {coords.typeInternaX}</span>
+                      <div className="flex">
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => adjust('typeInternaX', -1)}><ChevronLeft className="w-3 h-3"/></Button>
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => adjust('typeInternaX', 1)}><ChevronRight className="w-3 h-3"/></Button>
+                      </div>
+                    </div>
+                    <div className="bg-white p-1 rounded-lg border border-amber-200 flex justify-between items-center">
+                      <span className="text-[8px] font-bold ml-2">EXT: {coords.typeExternaX}</span>
+                      <div className="flex">
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => adjust('typeExternaX', -1)}><ChevronLeft className="w-3 h-3"/></Button>
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => adjust('typeExternaX', 1)}><ChevronRight className="w-3 h-3"/></Button>
+                      </div>
                     </div>
                   </div>
                   <div className="bg-white p-1 rounded-lg border border-amber-200 flex justify-between items-center">
-                    <span className="text-[8px] font-bold ml-2">EXT: {coords.typeExternaX}</span>
+                    <span className="text-[8px] font-bold ml-2">ALTURA (Y): {coords.typeY}</span>
                     <div className="flex">
-                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => adjust('typeExternaX', -1)}><ChevronLeft className="w-3 h-3"/></Button>
-                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => adjust('typeExternaX', 1)}><ChevronRight className="w-3 h-3"/></Button>
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => adjust('typeY', -1)}><ChevronUp className="w-3 h-3"/></Button>
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => adjust('typeY', 1)}><ChevronDown className="w-3 h-3"/></Button>
                     </div>
                   </div>
                 </div>
-                <div className="bg-white p-1 rounded-lg border border-amber-200 flex justify-between items-center">
-                  <span className="text-[8px] font-bold ml-2">ALTURA (Y): {coords.typeY}</span>
-                  <div className="flex">
-                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => adjust('typeY', -1)}><ChevronUp className="w-3 h-3"/></Button>
-                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => adjust('typeY', 1)}><ChevronDown className="w-3 h-3"/></Button>
-                  </div>
-                </div>
-              </div>
 
-              <div className="space-y-2">
-                <p className="text-[10px] font-black text-amber-900 uppercase">Tabla de Asistentes</p>
-                <ControlGroup title="Posición Tabla" xKey="tableX" yKey="tableY" xVal={coords.tableX} yVal={coords.tableY} />
+                <ControlGroup title="Tabla General" xKey="tableX" yKey="tableY" xVal={coords.tableX} yVal={coords.tableY} />
                 <div className="grid grid-cols-2 gap-2 mt-2">
                   <div className="bg-white p-1 rounded-lg border border-amber-200 flex justify-between items-center">
                     <span className="text-[8px] font-bold ml-2">FILAS: {coords.rowHeight}</span>
@@ -296,17 +298,21 @@ export default function AttendanceGeneratorPage() {
                     </div>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* LIST PANEL */}
-        <div className="lg:col-span-5">
-          <Card className="shadow-xl h-full flex flex-col">
+        <div className={cn("transition-all duration-300", showCalibration ? "lg:col-span-5" : "lg:col-span-9")}>
+          <Card className="shadow-xl h-full flex flex-col overflow-hidden">
             <CardHeader className="py-3 bg-slate-50 border-b flex items-center justify-between">
-              <CardTitle className="text-xs font-black uppercase">Asistentes</CardTitle>
-              <Input placeholder="Filtrar..." className="h-8 text-xs w-32 bg-white" value={userSearch} onChange={e => setUserSearch(e.target.value)} />
+              <CardTitle className="text-xs font-black uppercase">Asistentes ({selectedUserIds.length})</CardTitle>
+              <div className="flex gap-2">
+                <Input placeholder="Filtrar..." className="h-8 text-xs w-32 bg-white" value={userSearch} onChange={e => setUserSearch(e.target.value)} />
+                <Button variant="ghost" size="sm" className="h-8 text-[10px]" onClick={() => setSelectedUserIds(filteredUsers.map(u => u.uid))}>Todos</Button>
+                <Button variant="ghost" size="sm" className="h-8 text-[10px] text-red-500" onClick={() => setSelectedUserIds([])}>Limpiar</Button>
+              </div>
             </CardHeader>
             <CardContent className="p-0 flex-1 overflow-y-auto max-h-[70vh]">
               <div className="divide-y">
