@@ -87,8 +87,9 @@ export default function AttendanceGeneratorPage() {
         .filter(u => selectedUserIds.includes(u.uid))
         .map(u => ({ nombre: u.displayName, puesto: u.puesto }))
 
-      // 1. Load the Word template from public folder
-      const response = await fetch('/machote-asistencia.docx')
+      // 1. Load the Word template from public folder (using timestamp to avoid cache)
+      const response = await fetch(`/machote-asistencia.docx?t=${Date.now()}`)
+      if (!response.ok) throw new Error('No se pudo encontrar el archivo machote-asistencia.docx en el servidor')
       const content = await response.arrayBuffer()
       
       const zip = new PizZip(content)
