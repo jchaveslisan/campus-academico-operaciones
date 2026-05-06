@@ -19,6 +19,7 @@ import { generateCertificatePDF } from '@/lib/utils/pdfGenerator'
 import { v4 as uuidv4 } from 'uuid'
 import { addDoc, collection, Timestamp } from 'firebase/firestore'
 import { db } from '@/lib/firebase/client'
+import { cn } from '@/lib/utils'
 
 export default function CourseDetailPage() {
   const { courseId } = useParams() as { courseId: string }
