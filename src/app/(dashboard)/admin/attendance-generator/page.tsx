@@ -129,9 +129,11 @@ export default function AttendanceGeneratorPage() {
         })
       }
 
+      const formattedDate = trainingDate.split('-').reverse().join('/')
+
       drawText(course?.title || '', coords.temaX, coords.temaY, 10, true)
       drawText(instructor, coords.instructorX, coords.instructorY, 9)
-      drawText(trainingDate, coords.fechaX, coords.fechaY, 9)
+      drawText(formattedDate, coords.fechaX, coords.fechaY, 9)
       drawText(duration, coords.duracionX, coords.duracionY, 9)
       
       if (trainingType === 'Interna') {
