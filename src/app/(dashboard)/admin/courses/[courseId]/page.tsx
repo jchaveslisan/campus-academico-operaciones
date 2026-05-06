@@ -107,7 +107,7 @@ export default function CourseManagementPage() {
                         <Video className="w-3 h-3" /> Video OK
                       </Badge>
                       <Badge variant="outline" className="text-[9px] gap-1">
-                        <FileText className="w-3 h-3" /> {v.quiz.length} Preguntas
+                        <FileText className="w-3 h-3" /> {v.questions.length} Preguntas
                       </Badge>
                     </div>
                   </div>
