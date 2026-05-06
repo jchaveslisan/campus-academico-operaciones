@@ -7,7 +7,7 @@ import { motion } from 'framer-motion'
 import {
   LayoutDashboard, BookOpen, History, Award,
   Users, BookMarked, ClipboardList, BarChart3,
-  LogOut, ChevronRight, Beaker
+  LogOut, ChevronRight, Beaker, FileText
 } from 'lucide-react'
 import { toast } from 'sonner'
 import RoleSwitcher from './RoleSwitcher'
