@@ -84,7 +84,7 @@ export default function QuizContainer({ questions, onComplete, loading }: QuizCo
         >
           <Card className="border-2 border-border/50 shadow-xl rounded-3xl overflow-hidden">
             <CardContent className="p-8 space-y-8">
-              <h2 className="text-2xl md:text-3xl font-bold text-center leading-tight">
+              <h2 className="text-xl md:text-2xl font-bold text-center leading-tight">
                 {currentQuestion.text}
               </h2>
 

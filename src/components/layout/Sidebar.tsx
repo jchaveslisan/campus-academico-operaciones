@@ -109,24 +109,24 @@ export default function Sidebar() {
       </aside>
 
       {/* Mobile top bar */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-card/90 backdrop-blur border-b border-border px-4 py-3 flex items-center justify-between">
+      <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-card/90 backdrop-blur border-b border-border px-4 py-2 flex items-center justify-between h-12">
         <div className="flex items-center gap-2">
-          <Beaker className="w-5 h-5 text-primary" />
-          <span className="font-bold text-sm">Campus Académico</span>
+          <Beaker className="w-4 h-4 text-primary" />
+          <span className="font-bold text-xs">Campus Académico</span>
         </div>
-        <button id="mobile-signout" onClick={handleSignOut} className="text-muted-foreground">
-          <LogOut className="w-5 h-5" />
+        <button id="mobile-signout" onClick={handleSignOut} className="text-muted-foreground p-1">
+          <LogOut className="w-4 h-4" />
         </button>
       </div>
 
       {/* Mobile bottom nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur border-t border-border flex justify-around py-2 px-2">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur border-t border-border flex justify-around py-1 px-1 h-14">
         {(activeView === 'personal' ? personalNav : adminNav).slice(0, 4).map((item) => {
           const active = pathname === item.href || (item.href !== '/home' && item.href !== '/admin' && pathname.startsWith(item.href))
           return (
-            <Link key={item.href} href={item.href} className="flex flex-col items-center gap-0.5 px-3 py-1">
-              <item.icon className={cn('w-5 h-5', active ? 'text-primary' : 'text-muted-foreground')} />
-              <span className={cn('text-[10px]', active ? 'text-primary font-medium' : 'text-muted-foreground')}>
+            <Link key={item.href} href={item.href} className="flex flex-col items-center justify-center gap-0.5 px-2 py-1 min-w-[60px]">
+              <item.icon className={cn('w-4 h-4', active ? 'text-primary' : 'text-muted-foreground')} />
+              <span className={cn('text-[9px]', active ? 'text-primary font-medium' : 'text-muted-foreground')}>
                 {item.label.split(' ')[0]}
               </span>
             </Link>
