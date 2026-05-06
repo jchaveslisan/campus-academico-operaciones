@@ -98,7 +98,7 @@ export default function CourseManagementPage() {
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-sm">Versión {v.versionNumber}.0</span>
                       <span className="text-[10px] text-muted-foreground">
-                        {format((v.createdAt as any).toDate?.() || new Date(v.createdAt), 'PP', { locale: es })}
+                        {format((v.publishedAt as any).toDate?.() || new Date(v.publishedAt), 'PP', { locale: es })}
                       </span>
                     </div>
                     <p className="text-xs text-muted-foreground italic">"{v.changeLog}"</p>
