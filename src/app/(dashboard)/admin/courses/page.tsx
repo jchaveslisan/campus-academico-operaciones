@@ -117,9 +117,14 @@ export default function AdminCoursesPage() {
                       Gestionar
                     </Button>
                   </Link>
-                  <Link href={`/admin/courses/${course.courseId}/versions`}>
-                    <Button variant="ghost" size="icon" className="h-9 w-9">
+                  <Link href={`/admin/courses/${course.courseId}`}>
+                    <Button variant="ghost" size="icon" className="h-9 w-9" title="Historial de Versiones">
                       <History className="w-3.5 h-3.5" />
+                    </Button>
+                  </Link>
+                  <Link href={`/admin/courses/${course.courseId}/new-version`}>
+                    <Button variant="ghost" size="icon" className="h-9 w-9 text-primary hover:text-primary hover:bg-primary/10" title="Nueva Versión">
+                      <Plus className="w-3.5 h-3.5" />
                     </Button>
                   </Link>
                 </div>

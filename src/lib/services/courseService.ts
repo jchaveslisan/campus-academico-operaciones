@@ -82,40 +82,43 @@ export async function createCourseWithVersion(
   return { courseId: courseRef.id, versionId: versionRef.id }
 }
 
-export async function publishNewVersion(
+export async function createCourseVersion(
   courseId: string,
-  payload: Omit<CreateCoursePayload, 'title' | 'description' | 'department' | 'tags' | 'validityDays'>,
-  publishedBy: string
+  payload: {
+    changeLog: string;
+    videoUrl: string;
+    documentUrl: string;
+    questions: any[];
+    versionNumber: number;
+    publishedBy: string;
+  }
 ): Promise<string> {
-  const courseSnap = await getDoc(doc(db, 'courses', courseId))
+  // 1. Deprecate previous versions if any
+  const courseRef = doc(db, 'courses', courseId)
+  const courseSnap = await getDoc(courseRef)
   if (!courseSnap.exists()) throw new Error('Course not found')
   const course = courseSnap.data() as CourseDocument
-  const newVersionNumber = course.currentVersion + 1
 
-  // Deprecate old active version
-  await updateDoc(doc(db, 'courseVersions', course.latestVersionId), {
-    isActive: false,
-    deprecatedAt: Timestamp.now(),
-  })
-
-  // Create new version
+  // Optional: You could update all previous versions to isActive: false here
+  
+  // 2. Create the new version
   const versionRef = await addDoc(collection(db, 'courseVersions'), {
     courseId,
-    versionNumber: newVersionNumber,
+    versionNumber: payload.versionNumber,
     changeLog: payload.changeLog,
     videoUrl: payload.videoUrl,
     documentUrl: payload.documentUrl,
-    questions: payload.questions.map((q) => ({ ...q, questionId: uuidv4() })),
+    questions: payload.questions,
     isActive: true,
-    publishedBy,
+    publishedBy: payload.publishedBy,
     publishedAt: Timestamp.now(),
     deprecatedAt: null,
   })
 
-  // Update course master
-  await updateDoc(doc(db, 'courses', courseId), {
-    currentVersion: newVersionNumber,
-    latestVersionId: versionRef.id,
+  // 3. Update Course Master
+  await updateDoc(courseRef, {
+    currentVersion: payload.versionNumber,
+    latestVersionId: versionRef.id
   })
 
   return versionRef.id

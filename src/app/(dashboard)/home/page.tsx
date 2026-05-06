@@ -6,14 +6,19 @@ import { getMyEnrollments } from '@/lib/services/enrollmentService'
 import { getCourseById } from '@/lib/services/courseService'
 import { EnrollmentDocument, EnrollmentStatus } from '@/types/enrollment.types'
 import { CourseDocument } from '@/types/course.types'
-import { motion } from 'framer-motion'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { BookOpen, Clock, CheckCircle, AlertTriangle, ChevronRight, Award } from 'lucide-react'
+import { 
+  BookOpen, Clock, CheckCircle, 
+  AlertTriangle, ChevronDown, Award, 
+  ExternalLink, FileText, PlayCircle 
+} from 'lucide-react'
 import Link from 'next/link'
-import { formatDistanceToNow, isPast, isWithinInterval, subDays } from 'date-fns'
+import { formatDistanceToNow, isWithinInterval, subDays } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { cn } from '@/lib/utils'
 
 type EnrollmentWithCourse = EnrollmentDocument & { course: CourseDocument | null }
 
@@ -29,6 +34,7 @@ export default function HomePage() {
   const { profile } = useAuth()
   const [enrollments, setEnrollments] = useState<EnrollmentWithCourse[]>([])
   const [loading, setLoading] = useState(true)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!profile) return
@@ -48,141 +54,149 @@ export default function HomePage() {
     setLoading(false)
   }
 
-  const pending = enrollments.filter((e) => e.status === 'pending' || e.status === 'in_progress' || e.status === 'failed')
+  const pending = enrollments.filter((e) => e.status !== 'passed' && e.status !== 'expired')
   const passed  = enrollments.filter((e) => e.status === 'passed')
-  const expired = enrollments.filter((e) => e.status === 'expired')
-  const expiringSoon = enrollments.filter((e) => {
-    if (e.status !== 'passed' || !e.expiresAt) return false
-    const expiryDate = e.expiresAt instanceof Date ? e.expiresAt : (e.expiresAt as any).toDate()
-    return isWithinInterval(expiryDate, { start: new Date(), end: subDays(new Date(), -30) })
-  })
-
-  const completionPct = enrollments.length > 0
-    ? Math.round((passed.length / enrollments.length) * 100)
-    : 0
+  const completionPct = enrollments.length > 0 ? Math.round((passed.length / enrollments.length) * 100) : 0
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold">
-          Bienvenido, {profile?.displayName?.split(' ')[0]} 👋
-        </h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          {profile?.puesto} · {profile?.department}
-        </p>
-      </div>
-
-      {/* Stats Row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          { label: 'Pendientes',   value: pending.length,  icon: Clock,         color: 'text-amber-500'  },
-          { label: 'Completados',  value: passed.length,   icon: CheckCircle,   color: 'text-green-500'  },
-          { label: 'Vencidos',     value: expired.length,  icon: AlertTriangle, color: 'text-red-500'    },
-          { label: 'Total',        value: enrollments.length, icon: BookOpen,   color: 'text-primary'    },
-        ].map((stat, i) => (
-          <motion.div
-            key={stat.label}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.07 }}
-          >
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs text-muted-foreground font-medium">{stat.label}</p>
-                  <stat.icon className={`w-4 h-4 ${stat.color}`} />
-                </div>
-                <p className="text-3xl font-bold">{stat.value}</p>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Compliance progress */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Mi Cumplimiento General</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-2xl font-bold">{completionPct}%</span>
-            <Award className="w-5 h-5 text-primary" />
-          </div>
-          <Progress value={completionPct} className="h-2" />
-          <p className="text-xs text-muted-foreground mt-2">{passed.length} de {enrollments.length} capacitaciones aprobadas</p>
-        </CardContent>
-      </Card>
-
-      {/* Urgent / Expiring alerts */}
-      {(expired.length > 0 || expiringSoon.length > 0) && (
-        <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 space-y-2">
-          <div className="flex items-center gap-2 text-amber-600 font-semibold text-sm">
-            <AlertTriangle className="w-4 h-4" />
-            Atención requerida
-          </div>
-          {expired.map((e) => (
-            <Link key={e.enrollmentId} href={`/courses/${e.courseId}?enrollmentId=${e.enrollmentId}`} className="flex items-center justify-between rounded-lg bg-red-500/10 px-3 py-2 hover:bg-red-500/15 transition-colors">
-              <span className="text-sm font-medium text-red-600">{e.course?.title ?? 'Curso'} — Vencido</span>
-              <ChevronRight className="w-4 h-4 text-red-400" />
-            </Link>
-          ))}
-          {expiringSoon.map((e) => (
-            <Link key={e.enrollmentId} href={`/courses/${e.courseId}?enrollmentId=${e.enrollmentId}`} className="flex items-center justify-between rounded-lg bg-amber-500/10 px-3 py-2 hover:bg-amber-500/15 transition-colors">
-              <span className="text-sm font-medium text-amber-600">{e.course?.title ?? 'Curso'} — Por vencer</span>
-              <ChevronRight className="w-4 h-4 text-amber-400" />
-            </Link>
-          ))}
+    <div className="space-y-6 max-w-4xl mx-auto">
+      {/* Mini Profile Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+            Hola, {profile?.displayName?.split(' ')[0]}
+          </h1>
+          <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+            {profile?.puesto} · {profile?.department}
+          </p>
         </div>
-      )}
+        <div className="text-right">
+          <p className="text-[10px] font-bold text-muted-foreground uppercase">Mi Progreso</p>
+          <p className="text-2xl font-black text-primary">{completionPct}%</p>
+        </div>
+      </div>
 
-      {/* Pending courses */}
-      <div>
-        <h2 className="font-semibold text-base mb-3">Capacitaciones Pendientes</h2>
+      <Progress value={completionPct} className="h-1.5" />
+
+      {/* Course List Section */}
+      <div className="space-y-4 pt-4">
+        <div className="flex items-center justify-between px-2">
+          <h2 className="text-sm font-bold text-slate-500 uppercase tracking-widest">Catálogo Personal</h2>
+          <Badge variant="outline" className="text-[10px]">{pending.length} Pendientes</Badge>
+        </div>
+
         {loading ? (
           <div className="space-y-3">
-            {[1,2,3].map(i => <div key={i} className="h-20 rounded-xl bg-muted animate-pulse" />)}
+            {[1,2,3].map(i => <div key={i} className="h-14 rounded-2xl bg-muted animate-pulse" />)}
           </div>
-        ) : pending.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground">
-            <CheckCircle className="w-10 h-10 mx-auto mb-3 text-green-500/50" />
-            <p className="font-medium">¡Todo al día!</p>
-            <p className="text-sm">No tienes capacitaciones pendientes.</p>
+        ) : enrollments.length === 0 ? (
+          <div className="text-center py-20 bg-slate-50 rounded-3xl border-2 border-dashed">
+            <BookOpen className="w-10 h-10 mx-auto mb-3 text-slate-300" />
+            <p className="text-sm text-slate-500">No tienes cursos asignados aún.</p>
           </div>
         ) : (
-          <div className="space-y-3">
-            {pending.map((e, i) => {
+          <div className="space-y-2">
+            {enrollments.map((e) => {
               const cfg = statusConfig[e.status]
+              const isExpanded = expandedId === e.enrollmentId
+              const course = e.course
+
               return (
-                <motion.div
-                  key={e.enrollmentId}
-                  initial={{ opacity: 0, x: -12 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.06 }}
+                <Card 
+                  key={e.enrollmentId} 
+                  className={cn(
+                    "overflow-hidden transition-all duration-300 border-border/60",
+                    isExpanded ? "ring-2 ring-primary/20 shadow-xl" : "hover:bg-slate-50"
+                  )}
                 >
-                  <Link href={`/courses/${e.courseId}?enrollmentId=${e.enrollmentId}`}>
-                    <Card className="hover:shadow-md transition-shadow cursor-pointer group">
-                      <CardContent className="p-4 flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <BookOpen className="w-5 h-5 text-primary" />
+                  <CardContent className="p-0">
+                    {/* Compact Row */}
+                    <div 
+                      className="p-4 flex items-center justify-between cursor-pointer"
+                      onClick={() => setExpandedId(isExpanded ? null : e.enrollmentId)}
+                    >
+                      <div className="flex items-center gap-4 flex-1 min-w-0">
+                        <div className={cn(
+                          "w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors",
+                          e.status === 'passed' ? "bg-green-100 text-green-600" : "bg-primary/10 text-primary"
+                        )}>
+                          {e.status === 'passed' ? <CheckCircle className="w-5 h-5" /> : <PlayCircle className="w-5 h-5" />}
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-sm truncate">{e.course?.title ?? 'Cargando...'}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            {e.dueDate
-                              ? `Vence ${formatDistanceToNow((e.dueDate as any).toDate?.() ?? e.dueDate, { addSuffix: true, locale: es })}`
-                              : 'Sin fecha límite'}
+                        <div className="min-w-0">
+                          <h3 className="font-bold text-sm text-slate-900 truncate">
+                            {course?.title || 'Cargando...'}
+                          </h3>
+                          <p className="text-[10px] text-muted-foreground font-mono">
+                            VERSIÓN {e.versionNumber}.0
                           </p>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Badge className={`text-xs border ${cfg.color}`}>{cfg.label}</Badge>
-                          <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                </motion.div>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <Badge className={cn("text-[9px] h-5 border px-2", cfg.color)}>
+                          {cfg.label}
+                        </Badge>
+                        <ChevronDown className={cn(
+                          "w-4 h-4 text-muted-foreground transition-transform duration-300",
+                          isExpanded && "rotate-180"
+                        )} />
+                      </div>
+                    </div>
+
+                    {/* Expanded Content */}
+                    <AnimatePresence>
+                      {isExpanded && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <div className="px-4 pb-5 pt-0 border-t bg-slate-50/50 space-y-4">
+                            <div className="mt-4">
+                              <p className="text-xs text-slate-600 leading-relaxed">
+                                {course?.description}
+                              </p>
+                            </div>
+
+                            <div className="flex flex-wrap gap-2">
+                              {/* Go to Course */}
+                              <Link href={`/courses/${e.courseId}?enrollmentId=${e.enrollmentId}`} className="flex-1 min-w-[150px]">
+                                <Button className="w-full h-10 gap-2 text-xs font-bold shadow-md shadow-primary/20">
+                                  <PlayCircle className="w-4 h-4" />
+                                  {e.status === 'passed' ? 'Repasar Curso' : 'Iniciar Capacitación'}
+                                </Button>
+                              </Link>
+
+                              {/* Direct Link to Material (Requirement 2) */}
+                              {course?.documentUrl && (
+                                <a 
+                                  href={course.documentUrl} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="flex-1 min-w-[150px]"
+                                >
+                                  <Button variant="outline" className="w-full h-10 gap-2 text-xs bg-white">
+                                    <FileText className="w-4 h-4 text-primary" />
+                                    Material de Referencia
+                                    <ExternalLink className="w-3 h-3 text-muted-foreground" />
+                                  </Button>
+                                </a>
+                              )}
+                            </div>
+
+                            {e.dueDate && (
+                              <div className="flex items-center gap-2 text-[10px] text-amber-600 font-bold bg-amber-50 p-2 rounded-lg border border-amber-100">
+                                <Clock className="w-3 h-3" />
+                                FECHA LÍMITE: {formatDistanceToNow((e.dueDate as any).toDate?.() ?? e.dueDate, { addSuffix: true, locale: es }).toUpperCase()}
+                              </div>
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </CardContent>
+                </Card>
               )
             })}
           </div>
