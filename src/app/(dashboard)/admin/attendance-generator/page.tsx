@@ -13,7 +13,7 @@ import {
   FileText, Search, UserCheck, 
   BookMarked, Calendar, Printer,
   Clock, Move, ChevronUp, ChevronDown, ChevronLeft, ChevronRight,
-  GripVertical, Settings2
+  Settings2, Copy, Check
 } from 'lucide-react'
 import {
   Select,
@@ -34,6 +34,7 @@ export default function AttendanceGeneratorPage() {
   const [users, setUsers] = useState<UserPublic[]>([])
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
+  const [copied, setCopied] = useState(false)
   
   // Form State
   const [selectedCourseId, setSelectedCourseId] = useState('')
@@ -44,23 +45,15 @@ export default function AttendanceGeneratorPage() {
   const [trainingDate, setTrainingDate] = useState(new Date().toISOString().split('T')[0])
   const [duration, setDuration] = useState('')
 
-  // ULTRA CALIBRATION STATE
+  // TOTAL CALIBRATION STATE
   const [coords, setCoords] = useState({
-    temaX: 120,
-    temaY: 182,
-    instructorX: 120,
-    instructorY: 208,
-    fechaX: 120,
-    fechaY: 233,
-    duracionX: 340,
-    duracionY: 233,
-    typeInternaX: 387,
-    typeExternaX: 460,
-    typeY: 203,
-    tableX: 55,
-    tableY: 286,
-    puestoX: 395,
-    rowHeight: 19.8
+    temaX: 115, temaY: 178,
+    instructorX: 115, instructorY: 205,
+    fechaX: 115, fechaY: 230,
+    duracionX: 340, duracionY: 230,
+    typeInternaX: 387, typeExternaX: 460, typeY: 203,
+    tableX: 55, tableY: 286,
+    puestoX: 395, rowHeight: 19.8
   })
 
   useEffect(() => {
@@ -86,12 +79,11 @@ export default function AttendanceGeneratorPage() {
     setCoords(prev => ({ ...prev, [key]: Number((prev[key] + amount).toFixed(1)) }))
   }
 
-  const toggleUser = (userId: string) => {
-    setSelectedUserIds(prev => 
-      prev.includes(userId) 
-        ? prev.filter(id => id !== userId) 
-        : [...prev, userId]
-    )
+  const copyConfig = () => {
+    navigator.clipboard.writeText(JSON.stringify(coords, null, 2))
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+    toast.success('Configuración copiada al portapapeles')
   }
 
   const generatePDF = async () => {
@@ -105,7 +97,10 @@ export default function AttendanceGeneratorPage() {
       const course = courses.find(c => c.courseId === selectedCourseId)
       const attendees = users.filter(u => selectedUserIds.includes(u.uid))
 
-      const existingPdfBytes = await fetch(`/machote-asistencia.pdf?t=${Date.now()}`).then(res => res.arrayBuffer())
+      const response = await fetch(`/machote-asistencia.pdf?t=${Date.now()}`)
+      if (!response.ok) throw new Error('Machote no encontrado')
+      const existingPdfBytes = await response.arrayBuffer()
+      
       const pdfDoc = await PDFDocument.load(existingPdfBytes)
       const pages = pdfDoc.getPages()
       const firstPage = pages[0]
@@ -125,7 +120,6 @@ export default function AttendanceGeneratorPage() {
         })
       }
 
-      // --- LLENADO CON ULTRA-CALIBRACION ---
       drawText(course?.title || '', coords.temaX, coords.temaY, 10, true)
       drawText(instructor, coords.instructorX, coords.instructorY, 9)
       drawText(trainingDate, coords.fechaX, coords.fechaY, 9)
@@ -150,7 +144,7 @@ export default function AttendanceGeneratorPage() {
       const blob = new Blob([pdfBytes], { type: 'application/pdf' })
       const link = document.createElement('a')
       link.href = URL.createObjectURL(blob)
-      link.download = `F-RH-02_CALIBRADO.pdf`
+      link.download = `F-RH-02_PRODUCCION.pdf`
       link.click()
       
       toast.success('PDF generado con éxito')
@@ -168,21 +162,46 @@ export default function AttendanceGeneratorPage() {
     u.department.toLowerCase().includes(userSearch.toLowerCase())
   )
 
-  return (
-    <div className="max-w-7xl mx-auto space-y-6 pb-20">
-      <div className="flex justify-between items-center px-4">
-        <div>
-          <h1 className="text-3xl font-black tracking-tight text-slate-900">Asistente F-RH-02</h1>
-          <p className="text-muted-foreground font-medium">Control milimétrico de posicionamiento de datos.</p>
+  const ControlGroup = ({ title, xKey, yKey, xVal, yVal }: any) => (
+    <div className="space-y-2 pb-4 border-b border-amber-200/50">
+      <div className="flex justify-between items-center">
+        <p className="text-[10px] font-black text-amber-900 uppercase tracking-tighter">{title}</p>
+        <Badge variant="outline" className="text-[10px] font-mono bg-white">X:{xVal} Y:{yVal}</Badge>
+      </div>
+      <div className="flex gap-2">
+        <div className="flex-1 flex bg-white rounded-lg border border-amber-200 p-1">
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => adjust(xKey, -1)}><ChevronLeft className="w-3 h-3"/></Button>
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => adjust(xKey, 1)}><ChevronRight className="w-3 h-3"/></Button>
+          <div className="flex-1 text-center self-center text-[9px] font-bold text-slate-400">X</div>
+        </div>
+        <div className="flex-1 flex bg-white rounded-lg border border-amber-200 p-1">
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => adjust(yKey, -1)}><ChevronUp className="w-3 h-3"/></Button>
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => adjust(yKey, 1)}><ChevronDown className="w-3 h-3"/></Button>
+          <div className="flex-1 text-center self-center text-[9px] font-bold text-slate-400">Y</div>
         </div>
       </div>
+    </div>
+  )
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 px-4">
-        {/* INPUTS */}
+  return (
+    <div className="max-w-7xl mx-auto space-y-6 pb-20 p-4">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-black text-slate-900">Configuración F-RH-02</h1>
+          <Badge variant="secondary" className="mt-1">MODO AJUSTE FINO</Badge>
+        </div>
+        <Button onClick={copyConfig} variant="outline" className="gap-2 border-primary/20 hover:bg-primary/5">
+          {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+          Copiar Configuración
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* INPUTS PANEL */}
         <div className="lg:col-span-3 space-y-4">
-          <Card className="shadow-lg border-border/60">
+          <Card className="shadow-xl">
             <CardHeader className="py-3 bg-slate-50 border-b">
-              <CardTitle className="text-xs uppercase tracking-widest font-black">1. Información</CardTitle>
+              <CardTitle className="text-xs uppercase font-black">1. Datos Sesión</CardTitle>
             </CardHeader>
             <CardContent className="p-4 space-y-4">
               <Select value={selectedCourseId} onValueChange={setSelectedCourseId}>
@@ -201,136 +220,95 @@ export default function AttendanceGeneratorPage() {
                   <SelectItem value="Externa">Externa</SelectItem>
                 </SelectContent>
               </Select>
+              <Button onClick={generatePDF} disabled={generating || loading} className="w-full h-12 font-bold bg-slate-900">
+                {generating ? <Clock className="w-4 h-4 animate-spin" /> : <Printer className="w-4 h-4 mr-2" />}
+                PROBAR PDF
+              </Button>
             </CardContent>
           </Card>
-
-          <Button onClick={generatePDF} disabled={generating || loading} className="w-full h-14 text-lg font-bold shadow-xl bg-slate-900 hover:bg-slate-800">
-            {generating ? <Clock className="w-5 h-5 animate-spin" /> : <Printer className="w-5 h-5 mr-2" />}
-            IMPRIMIR PDF
-          </Button>
         </div>
 
-        {/* ULTRA CALIBRATION PANEL */}
+        {/* CALIBRATION PANEL */}
         <div className="lg:col-span-4 space-y-4">
-          <Card className="shadow-xl border-amber-200 bg-amber-50/20 overflow-hidden">
-            <CardHeader className="py-2.5 border-b border-amber-100 bg-amber-100/30 flex flex-row items-center justify-between">
-              <CardTitle className="text-[10px] font-black text-amber-900 flex items-center gap-2 tracking-widest uppercase">
-                <Settings2 className="w-4 h-4" /> Calibración Individual
+          <Card className="shadow-xl border-amber-200 bg-amber-50/20">
+            <CardHeader className="py-2.5 bg-amber-100/30 flex items-center justify-between border-b border-amber-200">
+              <CardTitle className="text-[10px] font-black text-amber-900 tracking-widest flex items-center gap-2">
+                <Settings2 className="w-4 h-4" /> CALIBRACIÓN INDIVIDUAL
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-4 space-y-4 max-h-[600px] overflow-y-auto scrollbar-thin">
+            <CardContent className="p-4 space-y-4 max-h-[70vh] overflow-y-auto scrollbar-thin">
+              <ControlGroup title="Tema" xKey="temaX" yKey="temaY" xVal={coords.temaX} yVal={coords.temaY} />
+              <ControlGroup title="Instructor" xKey="instructorX" yKey="instructorY" xVal={coords.instructorX} yVal={coords.instructorY} />
+              <ControlGroup title="Fecha" xKey="fechaX" yKey="fechaY" xVal={coords.fechaX} yVal={coords.fechaY} />
+              <ControlGroup title="Duración" xKey="duracionX" yKey="duracionY" xVal={coords.duracionX} yVal={coords.duracionY} />
               
-              {/* TEMA */}
-              <div className="space-y-1.5 pb-3 border-b border-amber-200/50">
-                <p className="text-[9px] font-black text-amber-800 uppercase flex justify-between">
-                  TEMA (X, Y) <span className="font-mono">{coords.temaX}, {coords.temaY}</span>
-                </p>
-                <div className="flex gap-1 justify-center bg-white p-1 rounded-lg border border-amber-200">
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => adjust('temaX', -1)}><ChevronLeft className="w-3 h-3"/></Button>
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => adjust('temaX', 1)}><ChevronRight className="w-3 h-3"/></Button>
-                  <div className="w-px bg-slate-100 mx-1" />
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => adjust('temaY', -1)}><ChevronUp className="w-3 h-3"/></Button>
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => adjust('temaY', 1)}><ChevronDown className="w-3 h-3"/></Button>
-                </div>
-              </div>
-
-              {/* INSTRUCTOR */}
-              <div className="space-y-1.5 pb-3 border-b border-amber-200/50">
-                <p className="text-[9px] font-black text-amber-800 uppercase flex justify-between">
-                  INSTRUCTOR (X, Y) <span className="font-mono">{coords.instructorX}, {coords.instructorY}</span>
-                </p>
-                <div className="flex gap-1 justify-center bg-white p-1 rounded-lg border border-amber-200">
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => adjust('instructorX', -1)}><ChevronLeft className="w-3 h-3"/></Button>
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => adjust('instructorX', 1)}><ChevronRight className="w-3 h-3"/></Button>
-                  <div className="w-px bg-slate-100 mx-1" />
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => adjust('instructorY', -1)}><ChevronUp className="w-3 h-3"/></Button>
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => adjust('instructorY', 1)}><ChevronDown className="w-3 h-3"/></Button>
-                </div>
-              </div>
-
-              {/* TIPO (X, Y) */}
-              <div className="space-y-1.5 pb-3 border-b border-amber-200/50">
-                <p className="text-[9px] font-black text-amber-800 uppercase flex justify-between">
-                  INTERNA (X) | EXTERNA (X) | Y <span className="font-mono">{coords.typeY}</span>
-                </p>
-                <div className="flex gap-1 justify-between bg-white p-1 rounded-lg border border-amber-200">
-                  <div className="flex gap-0.5">
-                    <Button variant="outline" size="sm" className="h-7 text-[8px]" onClick={() => adjust('typeInternaX', -1)}>I-</Button>
-                    <Button variant="outline" size="sm" className="h-7 text-[8px]" onClick={() => adjust('typeInternaX', 1)}>I+</Button>
-                  </div>
-                  <div className="flex gap-0.5">
-                    <Button variant="outline" size="sm" className="h-7 text-[8px]" onClick={() => adjust('typeExternaX', -1)}>E-</Button>
-                    <Button variant="outline" size="sm" className="h-7 text-[8px]" onClick={() => adjust('typeExternaX', 1)}>E+</Button>
-                  </div>
-                  <div className="flex gap-0.5">
-                    <Button variant="outline" size="sm" className="h-7 text-[8px]" onClick={() => adjust('typeY', -1)}>Y-</Button>
-                    <Button variant="outline" size="sm" className="h-7 text-[8px]" onClick={() => adjust('typeY', 1)}>Y+</Button>
-                  </div>
-                </div>
-              </div>
-
-              {/* FECHA Y DURACION */}
-              <div className="space-y-1.5 pb-3 border-b border-amber-200/50">
-                <p className="text-[9px] font-black text-amber-800 uppercase flex justify-between">
-                  FECHA (X, Y) | DURACIÓN (X) <span className="font-mono">{coords.fechaY}</span>
-                </p>
-                <div className="flex flex-col gap-2 bg-white p-2 rounded-lg border border-amber-200">
-                  <div className="flex justify-between gap-1">
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => adjust('fechaX', -1)}><ChevronLeft className="w-3 h-3"/></Button>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => adjust('fechaX', 1)}><ChevronRight className="w-3 h-3"/></Button>
+              <div className="space-y-2 pb-4 border-b border-amber-200/50">
+                <p className="text-[10px] font-black text-amber-900 uppercase">Marcas de Tipo (X, Y)</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="bg-white p-1 rounded-lg border border-amber-200 flex justify-between items-center">
+                    <span className="text-[8px] font-bold ml-2">INT: {coords.typeInternaX}</span>
+                    <div className="flex">
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => adjust('typeInternaX', -1)}><ChevronLeft className="w-3 h-3"/></Button>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => adjust('typeInternaX', 1)}><ChevronRight className="w-3 h-3"/></Button>
                     </div>
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => adjust('duracionX', -1)}><ChevronLeft className="w-3 h-3"/></Button>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => adjust('duracionX', 1)}><ChevronRight className="w-3 h-3"/></Button>
+                  </div>
+                  <div className="bg-white p-1 rounded-lg border border-amber-200 flex justify-between items-center">
+                    <span className="text-[8px] font-bold ml-2">EXT: {coords.typeExternaX}</span>
+                    <div className="flex">
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => adjust('typeExternaX', -1)}><ChevronLeft className="w-3 h-3"/></Button>
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => adjust('typeExternaX', 1)}><ChevronRight className="w-3 h-3"/></Button>
                     </div>
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => adjust('fechaY', -1)}><ChevronUp className="w-3 h-3"/></Button>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => adjust('fechaY', 1)}><ChevronDown className="w-3 h-3"/></Button>
+                  </div>
+                </div>
+                <div className="bg-white p-1 rounded-lg border border-amber-200 flex justify-between items-center">
+                  <span className="text-[8px] font-bold ml-2">ALTURA (Y): {coords.typeY}</span>
+                  <div className="flex">
+                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => adjust('typeY', -1)}><ChevronUp className="w-3 h-3"/></Button>
+                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => adjust('typeY', 1)}><ChevronDown className="w-3 h-3"/></Button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-[10px] font-black text-amber-900 uppercase">Tabla de Asistentes</p>
+                <ControlGroup title="Posición Tabla" xKey="tableX" yKey="tableY" xVal={coords.tableX} yVal={coords.tableY} />
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  <div className="bg-white p-1 rounded-lg border border-amber-200 flex justify-between items-center">
+                    <span className="text-[8px] font-bold ml-2">FILAS: {coords.rowHeight}</span>
+                    <div className="flex">
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => adjust('rowHeight', -0.1)}><ChevronUp className="w-3 h-3"/></Button>
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => adjust('rowHeight', 0.1)}><ChevronDown className="w-3 h-3"/></Button>
+                    </div>
+                  </div>
+                  <div className="bg-white p-1 rounded-lg border border-amber-200 flex justify-between items-center">
+                    <span className="text-[8px] font-bold ml-2">PUESTO X: {coords.puestoX}</span>
+                    <div className="flex">
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => adjust('puestoX', -1)}><ChevronLeft className="w-3 h-3"/></Button>
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => adjust('puestoX', 1)}><ChevronRight className="w-3 h-3"/></Button>
                     </div>
                   </div>
                 </div>
               </div>
-
-              {/* REPETIR CONTROLES DE TABLA SI ES NECESARIO */}
-              <div className="space-y-1.5">
-                <p className="text-[9px] font-black text-amber-800 uppercase flex justify-between">
-                  TABLA (X, Y) | FILAS | PUESTO <span className="font-mono">{coords.tableY}</span>
-                </p>
-                <div className="grid grid-cols-2 gap-2 bg-white p-2 rounded-lg border border-amber-200">
-                  <Button variant="outline" size="sm" className="text-[8px] h-7" onClick={() => adjust('tableY', -1)}>Subir Tabla</Button>
-                  <Button variant="outline" size="sm" className="text-[8px] h-7" onClick={() => adjust('tableY', 1)}>Bajar Tabla</Button>
-                  <Button variant="outline" size="sm" className="text-[8px] h-7" onClick={() => adjust('rowHeight', -0.1)}>Menos Espacio</Button>
-                  <Button variant="outline" size="sm" className="text-[8px] h-7" onClick={() => adjust('rowHeight', 0.1)}>Más Espacio</Button>
-                </div>
-              </div>
-
             </CardContent>
           </Card>
         </div>
 
-        {/* ASISTENTES */}
-        <div className="lg:col-span-5 space-y-4">
-          <Card className="shadow-xl border-border/60 h-full flex flex-col overflow-hidden">
-            <CardHeader className="py-3 bg-slate-50 border-b flex flex-row items-center justify-between">
-              <CardTitle className="text-xs font-black uppercase tracking-widest">Asistentes ({selectedUserIds.length})</CardTitle>
-              <Input 
-                placeholder="Filtrar..." 
-                className="h-8 text-xs w-32 bg-white" 
-                value={userSearch}
-                onChange={e => setUserSearch(e.target.value)}
-              />
+        {/* LIST PANEL */}
+        <div className="lg:col-span-5">
+          <Card className="shadow-xl h-full flex flex-col">
+            <CardHeader className="py-3 bg-slate-50 border-b flex items-center justify-between">
+              <CardTitle className="text-xs font-black uppercase">Asistentes</CardTitle>
+              <Input placeholder="Filtrar..." className="h-8 text-xs w-32 bg-white" value={userSearch} onChange={e => setUserSearch(e.target.value)} />
             </CardHeader>
-            <CardContent className="p-0 flex-1 overflow-y-auto max-h-[600px] scrollbar-thin">
-              <div className="grid grid-cols-1 divide-y">
+            <CardContent className="p-0 flex-1 overflow-y-auto max-h-[70vh]">
+              <div className="divide-y">
                 {filteredUsers.map(u => (
-                  <div key={u.uid} className={cn("flex items-center gap-3 p-3 hover:bg-slate-50 cursor-pointer transition-colors", selectedUserIds.includes(u.uid) && "bg-primary/5")} onClick={() => toggleUser(u.uid)}>
+                  <div key={u.uid} className={cn("flex items-center gap-3 p-3 hover:bg-slate-50 cursor-pointer", selectedUserIds.includes(u.uid) && "bg-primary/5")} onClick={() => toggleUser(u.uid)}>
                     <Checkbox checked={selectedUserIds.includes(u.uid)} onCheckedChange={() => toggleUser(u.uid)} />
                     <div className="min-w-0 flex-1">
-                      <p className="text-[11px] font-bold truncate text-slate-800">{u.displayName}</p>
-                      <p className="text-[9px] text-muted-foreground uppercase font-medium">{u.puesto}</p>
+                      <p className="text-[11px] font-bold text-slate-800">{u.displayName}</p>
+                      <p className="text-[9px] text-muted-foreground uppercase">{u.puesto}</p>
                     </div>
-                    <Badge variant="outline" className="text-[8px] uppercase">{u.department}</Badge>
                   </div>
                 ))}
               </div>
