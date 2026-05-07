@@ -66,8 +66,9 @@ export async function generateCertificatePDF(cert: CertificateDocument) {
   // ── DATES & SCORE ──
   doc.setFontSize(11)
   doc.text(`Fecha de Emisión: ${new Date(cert.issuedAt).toLocaleDateString('es-CR')}`, 40, 160)
-  doc.text(`Vence: ${new Date(cert.expiresAt).toLocaleDateString('es-CR')}`, 40, 168)
-  doc.text(`Puntaje obtenido: ${cert.score}/5 (80%)`, 40, 176)
+  const expiryText = cert.expiresAt ? new Date(cert.expiresAt).toLocaleDateString('es-CR') : 'PERMANENTE / NO VENCE'
+  doc.text(`Vence: ${expiryText}`, 40, 168)
+  doc.text(`Puntaje obtenido: ${cert.score} de 5 (80%)`, 40, 176)
 
   // ── QR CODE ──
   const verifyUrl = `${window.location.origin}/verify/${cert.certificateId}`

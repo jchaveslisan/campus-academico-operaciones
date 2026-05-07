@@ -145,12 +145,17 @@ export default function NewCoursePage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Vigencia (Días)</label>
+                  <div className="flex justify-between items-center">
+                    <label className="text-sm font-medium">Vigencia (Días)</label>
+                    <span className="text-[10px] font-bold text-primary uppercase">{formData.validityDays === 0 ? 'No vence' : `Vence en ${formData.validityDays} días`}</span>
+                  </div>
                   <Input 
                     type="number" 
+                    min="0"
                     value={formData.validityDays}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, validityDays: parseInt(e.target.value)})}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, validityDays: parseInt(e.target.value) || 0})}
                   />
+                  <p className="text-[10px] text-muted-foreground">Use 0 para capacitaciones de una única vez (sin vencimiento).</p>
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Etiquetas (separadas por coma)</label>

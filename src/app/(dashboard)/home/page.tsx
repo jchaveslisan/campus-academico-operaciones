@@ -186,7 +186,19 @@ export default function HomePage() {
                               )}
                             </div>
 
-                            {e.dueDate && (
+                            {e.status === 'passed' && (
+                              <div className={cn(
+                                "flex items-center gap-2 text-[10px] font-bold p-2 rounded-lg border",
+                                e.expiresAt ? "text-blue-600 bg-blue-50 border-blue-100" : "text-green-600 bg-green-50 border-green-100"
+                              )}>
+                                <Award className="w-3 h-3" />
+                                {e.expiresAt 
+                                  ? `VENCE EL: ${new Date((e.expiresAt as any).toDate?.() ?? e.expiresAt).toLocaleDateString('es-CR')}`
+                                  : 'CERTIFICADO PERMANENTE / NO VENCE'}
+                              </div>
+                            )}
+
+                            {e.status !== 'passed' && e.dueDate && (
                               <div className="flex items-center gap-2 text-[10px] text-amber-600 font-bold bg-amber-50 p-2 rounded-lg border border-amber-100">
                                 <Clock className="w-3 h-3" />
                                 FECHA LÍMITE: {formatDistanceToNow((e.dueDate as any).toDate?.() ?? e.dueDate, { addSuffix: true, locale: es }).toUpperCase()}

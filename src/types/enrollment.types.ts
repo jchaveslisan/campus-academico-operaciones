@@ -55,7 +55,7 @@ export interface CertificateDocument {
   userDepartment: string
   score: number
   issuedAt: Date
-  expiresAt: Date
+  expiresAt: Date | null
   isRevoked: boolean
   revokedAt: Date | null
 }

@@ -113,7 +113,9 @@ export default function CourseDetailPage() {
         // Create certificate record in Firestore for permanence
         const certId = uuidv4().split('-')[0].toUpperCase()
         const issuedAt = new Date()
-        const expiresAt = new Date(issuedAt.getTime() + course.validityDays * 24 * 60 * 60 * 1000)
+        const expiresAt = course.validityDays > 0 
+          ? new Date(issuedAt.getTime() + course.validityDays * 24 * 60 * 60 * 1000)
+          : null
         
         await addDoc(collection(db, 'certificates'), {
           certificateId: certId,
@@ -130,7 +132,7 @@ export default function CourseDetailPage() {
           userDepartment: profile!.department,
           score: result.score,
           issuedAt: Timestamp.fromDate(issuedAt),
-          expiresAt: Timestamp.fromDate(expiresAt),
+          expiresAt: expiresAt ? Timestamp.fromDate(expiresAt) : null,
           isRevoked: false,
         })
       }
@@ -146,7 +148,9 @@ export default function CourseDetailPage() {
     setLoading(true)
     try {
       const issuedAt = new Date()
-      const expiresAt = new Date(issuedAt.getTime() + course.validityDays * 24 * 60 * 60 * 1000)
+      const expiresAt = course.validityDays > 0 
+        ? new Date(issuedAt.getTime() + course.validityDays * 24 * 60 * 60 * 1000)
+        : null
       
       await generateCertificatePDF({
         certificateId: 'TEMP-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
