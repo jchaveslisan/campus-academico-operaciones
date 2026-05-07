@@ -71,7 +71,8 @@ export async function generateCertificatePDF(cert: CertificateDocument) {
   doc.text(`Puntaje obtenido: ${cert.score} de 5 (80%)`, 40, 176)
 
   // ── QR CODE ──
-  const verifyUrl = `${window.location.origin}/verify/${cert.certificateId}`
+  const baseUrl = 'https://campus-academico-operaciones.vercel.app'
+  const verifyUrl = `${baseUrl}/verify/${cert.certificateId}`
   const qrDataUrl = await QRCode.toDataURL(verifyUrl, { margin: 1, width: 100 })
   doc.addImage(qrDataUrl, 'PNG', pageWidth - 70, 145, 35, 35)
   
