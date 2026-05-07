@@ -21,8 +21,20 @@ export default function QuizContainer({ questions, onComplete, loading }: QuizCo
   const [isAnswered, setIsAnswered] = useState(false)
   const [answers, setAnswers] = useState<{ questionId: string; selectedId: string; isCorrect: boolean }[]>([])
 
+  if (!questions || questions.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center gap-4">
+        <AlertTriangle className="w-12 h-12 text-amber-500" />
+        <div className="space-y-1">
+          <p className="font-bold">No hay preguntas disponibles</p>
+          <p className="text-sm text-muted-foreground">Esta versión del curso no contiene cuestionario.</p>
+        </div>
+      </div>
+    )
+  }
+
   const currentQuestion = questions[currentIdx]
-  const progress = ((currentIdx + 1) / questions.length) * 100
+  const progress = questions.length > 0 ? ((currentIdx + 1) / questions.length) * 100 : 0
 
   const handleSelect = (optionId: string) => {
     if (isAnswered) return

@@ -15,6 +15,7 @@ import { CourseDocument, CourseVersionDocument, CreateCoursePayload } from '@/ty
 import { v4 as uuidv4 } from 'uuid'
 
 export async function getCourseById(courseId: string): Promise<CourseDocument | null> {
+  if (!courseId) return null
   const snap = await getDoc(doc(db, 'courses', courseId))
   if (!snap.exists()) return null
   return { ...(snap.data() as CourseDocument), courseId: snap.id }
@@ -27,6 +28,7 @@ export async function getActiveCourses(): Promise<CourseDocument[]> {
 }
 
 export async function getCourseVersion(versionId: string): Promise<CourseVersionDocument | null> {
+  if (!versionId) return null
   const snap = await getDoc(doc(db, 'courseVersions', versionId))
   if (!snap.exists()) return null
   return { ...(snap.data() as CourseVersionDocument), versionId: snap.id }

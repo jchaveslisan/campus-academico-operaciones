@@ -32,6 +32,7 @@ export default function CourseDetailPage() {
   const [version, setVersion] = useState<CourseVersionDocument | null>(null)
   const [enrollment, setEnrollment] = useState<EnrollmentDocument | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   
   const [step, setStep] = useState<'intro' | 'video' | 'quiz' | 'result'>('intro')
   const [attemptId, setAttemptId] = useState<string | null>(null)
@@ -42,13 +43,22 @@ export default function CourseDetailPage() {
   }, [courseId, enrollmentId])
 
   const loadData = async () => {
+    if (!courseId) return
     setLoading(true)
+    setError(null)
     try {
       const c = await getCourseById(courseId)
-      if (!c) throw new Error('Curso no encontrado')
+      if (!c) {
+        setError('El curso solicitado no existe o ha sido desactivado.')
+        return
+      }
       setCourse(c)
 
       const v = await getCourseVersion(c.latestVersionId)
+      if (!v) {
+        setError('Este curso no tiene una versión activa disponible en este momento.')
+        return
+      }
       setVersion(v)
 
       if (enrollmentId) {
@@ -56,7 +66,9 @@ export default function CourseDetailPage() {
         setEnrollment(e)
       }
     } catch (error: any) {
-      toast.error(error.message)
+      console.error('Error loading course:', error)
+      setError('Hubo un problema al cargar los datos del curso. Por favor, reintente.')
+      toast.error('Error de conexión')
     } finally {
       setLoading(false)
     }
@@ -165,8 +177,29 @@ export default function CourseDetailPage() {
 
   if (loading && step === 'intro') {
     return (
-      <div className="flex h-[60vh] items-center justify-center">
+      <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
         <Loader2 className="w-10 h-10 animate-spin text-primary" />
+        <p className="text-sm font-medium text-muted-foreground animate-pulse">Cargando capacitación...</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-[60vh] flex-col items-center justify-center gap-6 text-center px-6">
+        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+          <XCircle className="w-8 h-8 text-red-600" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-xl font-bold">No se pudo cargar el curso</h2>
+          <p className="text-sm text-muted-foreground max-w-xs mx-auto">{error}</p>
+        </div>
+        <Link href="/home">
+          <Button variant="outline" className="gap-2">
+            <ArrowLeft className="w-4 h-4" />
+            Volver al inicio
+          </Button>
+        </Link>
       </div>
     )
   }
