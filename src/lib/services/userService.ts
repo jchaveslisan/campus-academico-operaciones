@@ -30,8 +30,11 @@ export async function getUserById(uid: string): Promise<UserPublic | null> {
   }
 }
 
-export async function getAllUsers(): Promise<UserPublic[]> {
-  const q = query(collection(db, 'users'), where('isActive', '==', true))
+export async function getAllUsers(onlyActive = false): Promise<UserPublic[]> {
+  const q = onlyActive 
+    ? query(collection(db, 'users'), where('isActive', '==', true))
+    : collection(db, 'users')
+    
   const snap = await getDocs(q)
   return snap.docs.map((d) => {
     const data = d.data()
@@ -43,10 +46,18 @@ export async function getAllUsers(): Promise<UserPublic[]> {
       department: data.department,
       role: data.role,
       puesto: data.puesto,
-      isActive: data.isActive,
+      isActive: data.isActive ?? true,
       createdAt: data.createdAt?.toDate(),
       lastLoginAt: data.lastLoginAt?.toDate() ?? null,
     }
+  })
+}
+
+export async function updateUser(uid: string, data: Partial<UserPublic>): Promise<void> {
+  const { uid: _, createdAt: __, ...updateData } = data as any
+  await updateDoc(doc(db, 'users', uid), {
+    ...updateData,
+    updatedAt: Timestamp.now()
   })
 }
 
