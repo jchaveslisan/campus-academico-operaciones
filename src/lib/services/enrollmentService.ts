@@ -51,6 +51,19 @@ export async function assignCourse(
   assignedBy: string,
   dueDate: Date | null = null
 ): Promise<string> {
+  // Check if there is an active (not closed) enrollment for this user/course
+  const q = query(
+    collection(db, 'enrollments'),
+    where('userId', '==', userId),
+    where('courseId', '==', courseId),
+    where('status', 'in', ['pending', 'in_progress'])
+  )
+  
+  const existingSnap = await getDocs(q)
+  if (!existingSnap.empty) {
+    throw new Error('El colaborador ya tiene esta capacitación asignada y activa.')
+  }
+
   const ref = await addDoc(collection(db, 'enrollments'), {
     userId,
     courseId,

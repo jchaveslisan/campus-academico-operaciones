@@ -82,20 +82,43 @@ export default function AdminEnrollmentsPage() {
 
     setLoading(true)
     let successCount = 0
+    let duplicateCount = 0
+    let errorCount = 0
+
     try {
-      // We process assignments in parallel
-      await Promise.all(selectedUserIds.map(userId => 
-        assignCourse(
-          userId,
-          selectedCourseId,
-          course.latestVersionId,
-          course.currentVersion,
-          profile!.uid,
-          dueDate ? new Date(dueDate) : null
-        ).then(() => successCount++)
-      ))
+      // Process each assignment sequentially to better handle individual results
+      for (const userId of selectedUserIds) {
+        try {
+          await assignCourse(
+            userId,
+            selectedCourseId,
+            course.latestVersionId,
+            course.currentVersion,
+            profile!.uid,
+            dueDate ? new Date(dueDate) : null
+          )
+          successCount++
+        } catch (error: any) {
+          if (error.message.includes('ya tiene esta capacitación')) {
+            duplicateCount++
+          } else {
+            errorCount++
+          }
+        }
+      }
       
-      toast.success(`${successCount} capacitaciones asignadas exitosamente`)
+      if (successCount > 0) {
+        toast.success(`${successCount} capacitaciones asignadas exitosamente.`)
+      }
+      
+      if (duplicateCount > 0) {
+        toast.info(`${duplicateCount} colaboradores ya tenían la capacitación activa y fueron omitidos.`)
+      }
+
+      if (errorCount > 0) {
+        toast.error(`${errorCount} asignaciones fallaron por errores técnicos.`)
+      }
+
       setSelectedUserIds([])
       setDueDate('')
     } catch (error) {
