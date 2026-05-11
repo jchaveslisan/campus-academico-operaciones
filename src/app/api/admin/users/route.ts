@@ -77,10 +77,10 @@ export async function POST(req: Request) {
   }
 }
 
-// Reset PIN — jefatura only
+// Update User — jefatura only
 export async function PATCH(req: Request) {
   try {
-    const { targetUid, newPin } = await req.json()
+    const { targetUid, newPin, displayName, department, role, puesto, isActive } = await req.json()
 
     const authHeader = req.headers.get('Authorization')
     if (!authHeader?.startsWith('Bearer ')) {
@@ -89,31 +89,49 @@ export async function PATCH(req: Request) {
 
     const idToken = authHeader.split('Bearer ')[1]
     const decoded = await adminAuth.verifyIdToken(idToken)
+    
+    // Verify requester is jefatura
     const requesterSnap = await adminDb.collection('users').doc(decoded.uid).get()
     if (!requesterSnap.exists || requesterSnap.data()?.role !== 'jefatura') {
       return Response.json({ error: 'No autorizado' }, { status: 403 })
     }
 
-    const pinHash = await bcrypt.hash(newPin, 10)
-    await adminDb.collection('users').doc(targetUid).update({
-      pinHash,
-      failedPinAttempts: 0,
-      pinLockedUntil: null,
-    })
+    const updateData: any = {
+      updatedAt: new Date()
+    }
 
+    if (displayName) updateData.displayName = displayName
+    if (department) updateData.department = department
+    if (role) updateData.role = role
+    if (puesto) updateData.puesto = puesto
+    if (typeof isActive === 'boolean') updateData.isActive = isActive
+
+    // If PIN is provided, hash it and reset lockouts
+    if (newPin && newPin.length >= 4) {
+      updateData.pinHash = await bcrypt.hash(newPin, 10)
+      updateData.failedPinAttempts = 0
+      updateData.pinLockedUntil = null
+    }
+
+    await adminDb.collection('users').doc(targetUid).update(updateData)
+
+    // Audit log
     await adminDb.collection('auditLog').add({
       userId: decoded.uid,
-      action: 'PIN_RESET',
+      action: 'USER_UPDATED',
       targetId: targetUid,
       targetType: 'user',
       timestamp: new Date(),
-      metadata: {},
+      metadata: { 
+        fields: Object.keys(updateData).filter(k => k !== 'pinHash' && k !== 'updatedAt'),
+        pinUpdated: !!newPin 
+      },
       sessionId: '',
     })
 
-    return Response.json({ message: 'PIN actualizado exitosamente' })
+    return Response.json({ message: 'Usuario actualizado exitosamente' })
   } catch (error) {
-    console.error('[create-user PATCH]', error)
-    return Response.json({ error: 'Error actualizando PIN' }, { status: 500 })
+    console.error('[update-user PATCH]', error)
+    return Response.json({ error: 'Error actualizando usuario' }, { status: 500 })
   }
 }

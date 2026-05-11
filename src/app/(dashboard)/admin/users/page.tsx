@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
-import { getAllUsers, updateUser } from '@/lib/services/userService'
+import { getAllUsers } from '@/lib/services/userService'
 import { UserPublic } from '@/types/user.types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -11,7 +11,8 @@ import { Badge } from '@/components/ui/badge'
 import { 
   Plus, Search, UserPlus, Filter, 
   Settings2, Mail, Shield, Briefcase,
-  UserCheck, UserX, CheckCircle2, XCircle
+  UserCheck, UserX, CheckCircle2, XCircle,
+  Key
 } from 'lucide-react'
 import {
   Dialog,
@@ -33,7 +34,7 @@ import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
 export default function AdminUsersPage() {
-  const { user } = useAuth()
+  const { user: currentUser } = useAuth()
   const [users, setUsers] = useState<UserPublic[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -53,7 +54,15 @@ export default function AdminUsersPage() {
   })
 
   // Edit User Form State
-  const [editFormData, setEditFormData] = useState<Partial<UserPublic>>({})
+  const [editFormData, setEditFormData] = useState<any>({
+    displayName: '',
+    email: '',
+    department: 'produccion',
+    puesto: '',
+    role: 'colaborador',
+    isActive: true,
+    newPin: ''
+  })
 
   useEffect(() => {
     loadUsers()
@@ -75,14 +84,14 @@ export default function AdminUsersPage() {
     e.preventDefault()
     setLoading(true)
     try {
-      const idToken = await user?.getIdToken()
+      const idToken = await currentUser?.getIdToken()
       const res = await fetch('/api/admin/users', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${idToken}`
         },
-        body: JSON.stringify({ ...formData, createdBy: user?.uid }),
+        body: JSON.stringify({ ...formData, createdBy: currentUser?.uid }),
       })
 
       const data = await res.json()
@@ -115,7 +124,8 @@ export default function AdminUsersPage() {
       department: u.department,
       puesto: u.puesto,
       role: u.role,
-      isActive: u.isActive
+      isActive: u.isActive,
+      newPin: ''
     })
     setIsEditDialogOpen(true)
   }
@@ -125,12 +135,27 @@ export default function AdminUsersPage() {
     if (!selectedUser) return
     setLoading(true)
     try {
-      await updateUser(selectedUser.uid, editFormData)
+      const idToken = await currentUser?.getIdToken()
+      const res = await fetch('/api/admin/users', {
+        method: 'PATCH',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
+        },
+        body: JSON.stringify({ 
+          targetUid: selectedUser.uid,
+          ...editFormData 
+        }),
+      })
+
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+
       toast.success('Usuario actualizado correctamente')
       setIsEditDialogOpen(false)
       loadUsers()
-    } catch (error) {
-      toast.error('Error al actualizar usuario')
+    } catch (error: any) {
+      toast.error(error.message || 'Error al actualizar usuario')
     } finally {
       setLoading(false)
     }
@@ -272,20 +297,36 @@ export default function AdminUsersPage() {
                   Modifica la información de <strong>{selectedUser?.displayName}</strong>.
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
+              <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto px-1">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Nombre Completo</label>
                   <Input 
                     required 
-                    value={editFormData.displayName || ''}
+                    value={editFormData.displayName}
                     onChange={(e) => setEditFormData({...editFormData, displayName: e.target.value})}
                   />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-muted-foreground italic">
-                    Cédula: {selectedUser?.cedula} (No editable)
-                  </label>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] uppercase font-bold text-muted-foreground">Cédula</label>
+                    <p className="text-sm font-mono bg-slate-50 p-2 rounded border">{selectedUser?.cedula}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium flex items-center gap-2">
+                      <Key className="w-3 h-3 text-amber-500" />
+                      Nuevo PIN
+                    </label>
+                    <Input 
+                      type="password"
+                      placeholder="Dejar vacío para mantener" 
+                      maxLength={6}
+                      value={editFormData.newPin}
+                      onChange={(e) => setEditFormData({...editFormData, newPin: e.target.value.replace(/\D/g, '')})}
+                    />
+                  </div>
                 </div>
+
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Departamento</label>
                   <Select 
@@ -304,7 +345,7 @@ export default function AdminUsersPage() {
                   <label className="text-sm font-medium">Puesto / Cargo</label>
                   <Input 
                     required 
-                    value={editFormData.puesto || ''}
+                    value={editFormData.puesto}
                     onChange={(e) => setEditFormData({...editFormData, puesto: e.target.value})}
                   />
                 </div>
