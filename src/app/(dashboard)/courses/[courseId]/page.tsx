@@ -14,7 +14,7 @@ import {
   Award, FileDown, CheckCircle, ArrowLeft, 
   Video, Info, Loader2, Trophy, XCircle, 
   ExternalLink, Play, MessageSquare, Send,
-  HelpCircle, CheckCircle2
+  HelpCircle, CheckCircle2, FileText
 } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
@@ -382,7 +382,7 @@ export default function CourseDetailPage() {
                             </p>
                             <p className="leading-relaxed">{d.message}</p>
                             <p className="text-[9px] mt-2 text-right opacity-60">
-                              {formatDistanceToNow(new Date((d.timestamp as any).toDate?.() ?? d.timestamp), { addSuffix: true, locale: es })}
+                              {d.timestamp ? formatDistanceToNow(new Date((d.timestamp as any).toDate?.() ?? d.timestamp), { addSuffix: true, locale: es }) : 'Reciente'}
                             </p>
                           </div>
                         ))
