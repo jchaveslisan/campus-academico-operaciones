@@ -337,55 +337,55 @@ export default function AdminUsersPage() {
         </Dialog>
 
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="sm:max-w-xl p-0 overflow-hidden border-none shadow-2xl">
-            <div className="bg-slate-900 text-white p-6 pb-12">
+          <DialogContent className="sm:max-w-2xl p-0 overflow-hidden border-none shadow-2xl">
+            <div className="bg-slate-900 text-white p-8 pb-14">
               <DialogHeader>
-                <DialogTitle className="flex items-center gap-2 text-white">
-                  <Settings2 className="w-5 h-5 text-primary-foreground" />
+                <DialogTitle className="flex items-center gap-2 text-xl text-white">
+                  <Settings2 className="w-6 h-6 text-primary-foreground" />
                   Gestión de Colaborador
                 </DialogTitle>
-                <DialogDescription className="text-slate-300">
+                <DialogDescription className="text-slate-400 text-base">
                   Panel administrativo para <strong>{selectedUser?.displayName}</strong>.
                 </DialogDescription>
               </DialogHeader>
             </div>
 
-            <div className="px-6 -mt-8">
+            <div className="px-8 -mt-8">
               <Tabs defaultValue="profile" className="w-full">
-                <TabsList className="bg-white/80 backdrop-blur-sm border shadow-sm p-1 h-10 inline-flex w-auto rounded-xl">
-                  <TabsTrigger value="profile" className="rounded-lg px-4 text-xs font-bold data-[state=active]:bg-slate-900 data-[state=active]:text-white">Perfil</TabsTrigger>
-                  <TabsTrigger value="enrollments" className="rounded-lg px-4 text-xs font-bold data-[state=active]:bg-slate-900 data-[state=active]:text-white">Capacitaciones</TabsTrigger>
+                <TabsList className="bg-white/90 backdrop-blur-md border shadow-md p-1 h-12 inline-flex w-auto rounded-2xl">
+                  <TabsTrigger value="profile" className="rounded-xl px-6 text-sm font-bold data-[state=active]:bg-slate-900 data-[state=active]:text-white">Perfil del Usuario</TabsTrigger>
+                  <TabsTrigger value="enrollments" className="rounded-xl px-6 text-sm font-bold data-[state=active]:bg-slate-900 data-[state=active]:text-white">Historial Académico</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="profile" className="mt-4 pb-6">
-                  <form onSubmit={handleUpdateUser} className="space-y-4">
-                    <div className="max-h-[50vh] overflow-y-auto px-1 space-y-4">
+                <TabsContent value="profile" className="mt-6 pb-8">
+                  <form onSubmit={handleUpdateUser} className="space-y-6">
+                    <div className="max-h-[60vh] overflow-y-auto px-1 space-y-6">
                       <div className="space-y-2">
-                        <label className="text-[10px] font-bold uppercase text-slate-500">Nombre Completo</label>
+                        <label className="text-[11px] font-black uppercase text-slate-400 tracking-wider">Nombre Completo</label>
                         <Input 
                           required 
-                          className="h-10 border-slate-200 focus:border-slate-900 transition-all"
+                          className="h-12 border-slate-200 focus:ring-2 focus:ring-slate-900 transition-all text-base rounded-xl"
                           value={editFormData.displayName}
                           onChange={(e) => setEditFormData({...editFormData, displayName: e.target.value})}
                         />
                       </div>
                       
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-2 gap-6">
                         <div className="space-y-2">
-                          <label className="text-[10px] font-bold uppercase text-slate-500">Cédula</label>
-                          <div className="h-10 flex items-center px-3 bg-slate-50 rounded-lg border border-slate-100 text-sm font-mono text-slate-600">
+                          <label className="text-[11px] font-black uppercase text-slate-400 tracking-wider">Cédula de Identidad</label>
+                          <div className="h-12 flex items-center px-4 bg-slate-50 rounded-xl border border-slate-100 text-base font-mono text-slate-600">
                             {selectedUser?.cedula}
                           </div>
                         </div>
                         <div className="space-y-2">
-                          <label className="text-[10px] font-bold uppercase text-slate-500 flex items-center gap-2">
-                            <Key className="w-3 h-3 text-amber-500" />
-                            Nuevo PIN
+                          <label className="text-[11px] font-black uppercase text-slate-400 tracking-wider flex items-center gap-2">
+                            <Key className="w-3.5 h-3.5 text-amber-500" />
+                            Nuevo PIN de Acceso
                           </label>
                           <Input 
                             type="password"
-                            className="h-10 border-slate-200 focus:border-slate-900 transition-all"
-                            placeholder="Sin cambios" 
+                            className="h-12 border-slate-200 focus:ring-2 focus:ring-slate-900 transition-all rounded-xl"
+                            placeholder="Dejar vacío para mantener actual" 
                             maxLength={6}
                             value={editFormData.newPin}
                             onChange={(e) => setEditFormData({...editFormData, newPin: e.target.value.replace(/\D/g, '')})}
@@ -393,14 +393,14 @@ export default function AdminUsersPage() {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-2 gap-6">
                         <div className="space-y-2">
-                          <label className="text-[10px] font-bold uppercase text-slate-500">Departamento</label>
+                          <label className="text-[11px] font-black uppercase text-slate-400 tracking-wider">Departamento</label>
                           <Select 
                             value={editFormData.department} 
                             onValueChange={v => setEditFormData({...editFormData, department: v as any})}
                           >
-                            <SelectTrigger className="h-10 border-slate-200"><SelectValue /></SelectTrigger>
+                            <SelectTrigger className="h-12 border-slate-200 rounded-xl"><SelectValue /></SelectTrigger>
                             <SelectContent>
                               <SelectItem value="produccion">Producción</SelectItem>
                               <SelectItem value="mantenimiento">Mantenimiento</SelectItem>
@@ -412,108 +412,112 @@ export default function AdminUsersPage() {
                           </Select>
                         </div>
                         <div className="space-y-2">
-                          <label className="text-[10px] font-bold uppercase text-slate-500">Puesto / Cargo</label>
+                          <label className="text-[11px] font-black uppercase text-slate-400 tracking-wider">Puesto / Cargo</label>
                           <Input 
                             required 
-                            className="h-10 border-slate-200"
+                            className="h-12 border-slate-200 rounded-xl"
                             value={editFormData.puesto}
                             onChange={(e) => setEditFormData({...editFormData, puesto: e.target.value})}
                           />
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-2 gap-6">
                         <div className="space-y-2">
-                          <label className="text-[10px] font-bold uppercase text-slate-500">Estado de Cuenta</label>
+                          <label className="text-[11px] font-black uppercase text-slate-400 tracking-wider">Estado Operativo</label>
                           <Select 
                             value={editFormData.isActive ? 'active' : 'inactive'} 
                             onValueChange={v => setEditFormData({...editFormData, isActive: v === 'active'})}
                           >
                             <SelectTrigger className={cn(
-                              "h-10 border-slate-200 font-bold",
-                              editFormData.isActive ? "text-green-600" : "text-red-600"
+                              "h-12 border-slate-200 font-bold rounded-xl",
+                              editFormData.isActive ? "text-green-600 bg-green-50/50" : "text-red-600 bg-red-50/50"
                             )}>
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="active">Activo</SelectItem>
-                              <SelectItem value="inactive">Inactivo</SelectItem>
+                              <SelectItem value="active" className="text-green-600 font-bold">ACTIVO (Con acceso)</SelectItem>
+                              <SelectItem value="inactive" className="text-red-600 font-bold">INACTIVO (Bloqueado)</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                         <div className="space-y-2">
-                          <label className="text-[10px] font-bold uppercase text-slate-500">Rol de Acceso</label>
+                          <label className="text-[11px] font-black uppercase text-slate-400 tracking-wider">Permisos de Sistema</label>
                           <Select 
                             value={editFormData.role} 
                             onValueChange={v => setEditFormData({...editFormData, role: v as any})}
                           >
-                            <SelectTrigger className="h-10 border-slate-200"><SelectValue /></SelectTrigger>
+                            <SelectTrigger className="h-12 border-slate-200 rounded-xl"><SelectValue /></SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="colaborador">Colaborador</SelectItem>
-                              <SelectItem value="jefatura">Jefatura</SelectItem>
+                              <SelectItem value="colaborador">Colaborador (Vistas de aprendizaje)</SelectItem>
+                              <SelectItem value="jefatura">Jefatura (Vistas administrativas)</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                       </div>
                     </div>
 
-                    <div className="pt-4 border-t flex gap-3">
-                      <Button type="button" variant="ghost" onClick={() => setIsEditDialogOpen(false)} className="flex-1">Cancelar</Button>
-                      <Button type="submit" disabled={loading} className="flex-1 bg-slate-900 hover:bg-slate-800 text-white shadow-lg">
-                        {loading ? 'Guardando...' : 'Actualizar Perfil'}
+                    <div className="pt-6 border-t flex gap-4">
+                      <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)} className="flex-1 h-12 rounded-xl">Cancelar</Button>
+                      <Button type="submit" disabled={loading} className="flex-1 h-12 bg-slate-900 hover:bg-slate-800 text-white shadow-xl rounded-xl">
+                        {loading ? 'Guardando...' : 'Guardar Cambios'}
                       </Button>
                     </div>
                   </form>
                 </TabsContent>
 
-                <TabsContent value="enrollments" className="mt-4 pb-6">
-                  <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-2 scrollbar-thin">
+                <TabsContent value="enrollments" className="mt-6 pb-8">
+                  <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-3 scrollbar-thin">
                     {loadingEnrollments ? (
-                      <div className="flex flex-col items-center justify-center py-10 opacity-50">
-                        <Loader2 className="w-6 h-6 animate-spin mb-2" />
-                        <p className="text-xs">Cargando historial...</p>
+                      <div className="flex flex-col items-center justify-center py-20 opacity-50">
+                        <Loader2 className="w-8 h-8 animate-spin mb-3 text-primary" />
+                        <p className="text-sm font-medium">Sincronizando historial...</p>
                       </div>
                     ) : userEnrollments.length === 0 ? (
-                      <div className="text-center py-10 border-2 border-dashed rounded-2xl text-muted-foreground">
-                        <BookMarked className="w-8 h-8 mx-auto mb-2 opacity-20" />
-                        <p className="text-sm italic">Sin capacitaciones asignadas.</p>
+                      <div className="text-center py-16 border-2 border-dashed rounded-[2rem] text-muted-foreground bg-slate-50/50">
+                        <BookMarked className="w-10 h-10 mx-auto mb-3 opacity-20" />
+                        <p className="text-sm font-medium italic">Este usuario no tiene capacitaciones asignadas actualmente.</p>
                       </div>
                     ) : (
                       userEnrollments.map((e) => {
                         const course = courses.find(c => c.courseId === e.courseId)
                         return (
-                          <div key={e.enrollmentId} className="flex items-center justify-between p-4 rounded-2xl border bg-slate-50 group/item hover:border-slate-300 transition-all">
+                          <div key={e.enrollmentId} className="flex items-center justify-between p-5 rounded-[1.25rem] border bg-white shadow-sm hover:shadow-md hover:border-slate-300 transition-all group">
                             <div className="min-w-0 flex-1">
-                              <p className="text-xs font-black text-slate-900 truncate pr-2 uppercase tracking-tight">{course?.title || 'Curso desconocido'}</p>
-                              <div className="flex items-center gap-2 mt-1">
-                                <Badge variant="outline" className={cn(
-                                  "text-[8px] font-bold px-1.5 h-4 uppercase",
-                                  e.status === 'passed' ? "bg-green-100 text-green-700 border-green-200" :
-                                  e.status === 'failed' ? "bg-red-100 text-red-700 border-red-200" :
-                                  "bg-amber-100 text-amber-700 border-amber-200"
+                              <p className="text-sm font-black text-slate-900 truncate pr-4 uppercase tracking-tight">{course?.title || 'Curso desconocido'}</p>
+                              <div className="flex items-center gap-3 mt-1.5">
+                                <Badge className={cn(
+                                  "text-[10px] font-bold px-2 h-5 uppercase rounded-full shadow-sm",
+                                  e.status === 'passed' ? "bg-green-100 text-green-700 hover:bg-green-200 border-none" :
+                                  e.status === 'failed' ? "bg-red-100 text-red-700 hover:bg-red-200 border-none" :
+                                  "bg-amber-100 text-amber-700 hover:bg-amber-200 border-none"
                                 )}>
                                   {e.status === 'passed' ? 'Aprobado' : e.status === 'failed' ? 'Reprobado' : 'Pendiente'}
                                 </Badge>
-                                <span className="text-[10px] text-slate-400 font-mono">v{e.versionNumber}.0</span>
+                                <span className="text-[11px] text-slate-400 font-mono bg-slate-50 px-2 py-0.5 rounded-md border border-slate-100">V{e.versionNumber}.0</span>
                               </div>
                             </div>
                             <Button 
                               variant="ghost" 
                               size="icon" 
-                              className="h-8 w-8 text-slate-300 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover/item:opacity-100 transition-all rounded-full"
+                              className="h-10 w-10 text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors rounded-full border border-transparent hover:border-red-100 shadow-sm"
+                              title="Eliminar asignación"
                               onClick={() => handleDeleteEnrollment(e.enrollmentId)}
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-5 h-5" />
                             </Button>
                           </div>
                         )
                       })
                     )}
                   </div>
-                  <div className="pt-6 border-t mt-4">
-                    <p className="text-[10px] text-slate-400 italic text-center">
-                      Haga clic en el basurero para retirar una asignación incorrecta.
-                    </p>
+                  <div className="pt-8 border-t mt-6">
+                    <div className="bg-red-50 p-4 rounded-2xl border border-red-100 flex items-center gap-3">
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                      <p className="text-[11px] text-red-700 leading-tight">
+                        <strong>Atención:</strong> Eliminar una asignación borrará permanentemente cualquier progreso o intento realizado por el colaborador en este curso.
+                      </p>
+                    </div>
                   </div>
                 </TabsContent>
               </Tabs>
