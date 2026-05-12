@@ -105,60 +105,80 @@ export default function AttendanceGeneratorPage() {
     try {
       const course = courses.find(c => c.courseId === selectedCourseId)
       const attendees = users.filter(u => selectedUserIds.includes(u.uid))
+      const PAGE_LIMIT = 18
 
       const response = await fetch(`/machote-asistencia.pdf?t=${Date.now()}`)
       if (!response.ok) throw new Error('Machote no encontrado')
       const existingPdfBytes = await response.arrayBuffer()
       
       const pdfDoc = await PDFDocument.load(existingPdfBytes)
-      const pages = pdfDoc.getPages()
-      const firstPage = pages[0]
-      const { height } = firstPage.getSize()
-
       const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
       const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
-
-      const drawText = (text: string, x: number, y: number, size = 9, isBold = false) => {
-        if (!text) return
-        firstPage.drawText(text, {
-          x,
-          y: height - y,
-          size,
-          font: isBold ? boldFont : font,
-          color: rgb(0, 0, 0),
-        })
-      }
-
-      const formattedDate = trainingDate.split('-').reverse().join('/')
-
-      drawText(course?.title || '', coords.temaX, coords.temaY, 10, true)
-      drawText(instructor, coords.instructorX, coords.instructorY, 9)
-      drawText(formattedDate, coords.fechaX, coords.fechaY, 9)
-      drawText(duration, coords.duracionX, coords.duracionY, 9)
       
-      if (trainingType === 'Interna') {
-        drawText('X', coords.typeInternaX, coords.typeY, 12, true)
-      } else {
-        drawText('X', coords.typeExternaX, coords.typeY, 12, true)
-      }
+      const formattedDate = trainingDate.split('-').reverse().join('/')
+      
+      // Calculate how many pages we need
+      const totalPages = Math.ceil(attendees.length / PAGE_LIMIT)
+      
+      // For each chunk of 18 people
+      for (let i = 0; i < totalPages; i++) {
+        let currentPage
+        if (i === 0) {
+          currentPage = pdfDoc.getPages()[0]
+        } else {
+          // Clone the first page to maintain the template background
+          const [copiedPage] = await pdfDoc.copyPages(pdfDoc, [0])
+          currentPage = pdfDoc.addPage(copiedPage)
+        }
 
-      let yPos = coords.tableY
-      attendees.forEach((user, index) => {
-        if (index < 25) {
+        const { height } = currentPage.getSize()
+        const drawText = (text: string, x: number, y: number, size = 9, isBold = false) => {
+          if (!text) return
+          currentPage.drawText(text, {
+            x,
+            y: height - y,
+            size,
+            font: isBold ? boldFont : font,
+            color: rgb(0, 0, 0),
+          })
+        }
+
+        // Draw Headers on every page
+        drawText(course?.title || '', coords.temaX, coords.temaY, 10, true)
+        drawText(instructor, coords.instructorX, coords.instructorY, 9)
+        drawText(formattedDate, coords.fechaX, coords.fechaY, 9)
+        drawText(duration, coords.duracionX, coords.duracionY, 9)
+        
+        if (trainingType === 'Interna') {
+          drawText('X', coords.typeInternaX, coords.typeY, 12, true)
+        } else {
+          drawText('X', coords.typeExternaX, coords.typeY, 12, true)
+        }
+
+        // Draw people for this specific page
+        const start = i * PAGE_LIMIT
+        const end = start + PAGE_LIMIT
+        const pageAttendees = attendees.slice(start, end)
+
+        let yPos = coords.tableY
+        pageAttendees.forEach((user) => {
           drawText(user.displayName, coords.tableX, yPos, 8)
           drawText(user.puesto, coords.puestoX, yPos, 7)
           yPos += coords.rowHeight
-        }
-      })
+        })
+
+        // Draw page indicator (optional but helpful)
+        drawText(`Hoja ${i + 1} de ${totalPages}`, 500, 40, 7, false)
+      }
 
       const pdfBytes = await pdfDoc.save()
       const blob = new Blob([pdfBytes], { type: 'application/pdf' })
       const link = document.createElement('a')
       link.href = URL.createObjectURL(blob)
-      link.download = `F-RH-02_CALIBRADO.pdf`
+      link.download = `F-RH-02_${course?.title.replace(/\s+/g, '_')}.pdf`
       link.click()
       
-      toast.success('PDF generado')
+      toast.success(`PDF generado con ${totalPages} página(s)`)
     } catch (error) {
       console.error(error)
       toast.error('Error al generar el PDF')
