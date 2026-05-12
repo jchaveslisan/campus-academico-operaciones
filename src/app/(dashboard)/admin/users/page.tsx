@@ -3,7 +3,11 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { getAllUsers } from '@/lib/services/userService'
+import { getActiveCourses } from '@/lib/services/courseService'
+import { getMyEnrollments, deleteEnrollment } from '@/lib/services/enrollmentService'
 import { UserPublic } from '@/types/user.types'
+import { CourseDocument } from '@/types/course.types'
+import { EnrollmentDocument } from '@/types/enrollment.types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,7 +16,7 @@ import {
   Plus, Search, UserPlus, Filter, 
   Settings2, Mail, Shield, Briefcase,
   UserCheck, UserX, CheckCircle2, XCircle,
-  Key
+  Key, Trash2, BookMarked, Loader2
 } from 'lucide-react'
 import {
   Dialog,
@@ -30,18 +34,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs"
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
 export default function AdminUsersPage() {
   const { user: currentUser } = useAuth()
   const [users, setUsers] = useState<UserPublic[]>([])
+  const [courses, setCourses] = useState<CourseDocument[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<UserPublic | null>(null)
   
+  // User Enrollments state
+  const [userEnrollments, setUserEnrollments] = useState<EnrollmentDocument[]>([])
+  const [loadingEnrollments, setLoadingEnrollments] = useState(false)
+
   // New User Form State
   const [formData, setFormData] = useState({
     displayName: '',
@@ -65,19 +80,30 @@ export default function AdminUsersPage() {
   })
 
   useEffect(() => {
-    loadUsers()
+    loadData()
   }, [])
 
-  const loadUsers = async () => {
+  const loadData = async () => {
     setLoading(true)
     try {
-      const data = await getAllUsers()
-      setUsers(data)
+      const [uData, cData] = await Promise.all([
+        getAllUsers(),
+        getActiveCourses()
+      ])
+      setUsers(uData)
+      setCourses(cData)
     } catch (error) {
-      toast.error('Error al cargar colaboradores')
+      toast.error('Error al cargar datos')
     } finally {
       setLoading(false)
     }
+  }
+
+  const loadUsers = async () => {
+    try {
+      const data = await getAllUsers()
+      setUsers(data)
+    } catch (error) {}
   }
 
   const handleCreateUser = async (e: React.FormEvent) => {
@@ -116,7 +142,7 @@ export default function AdminUsersPage() {
     }
   }
 
-  const openEditDialog = (u: UserPublic) => {
+  const openEditDialog = async (u: UserPublic) => {
     setSelectedUser(u)
     setEditFormData({
       displayName: u.displayName,
@@ -128,6 +154,17 @@ export default function AdminUsersPage() {
       newPin: ''
     })
     setIsEditDialogOpen(true)
+    
+    // Load enrollments for this user
+    setLoadingEnrollments(true)
+    try {
+      const enrolls = await getMyEnrollments(u.uid)
+      setUserEnrollments(enrolls)
+    } catch (error) {
+      toast.error('Error al cargar capacitaciones del usuario')
+    } finally {
+      setLoadingEnrollments(false)
+    }
   }
 
   const handleUpdateUser = async (e: React.FormEvent) => {
@@ -158,6 +195,18 @@ export default function AdminUsersPage() {
       toast.error(error.message || 'Error al actualizar usuario')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleDeleteEnrollment = async (enrollmentId: string) => {
+    if (!confirm('¿Está seguro de borrar esta asignación? El progreso se perderá permanentemente.')) return
+    
+    try {
+      await deleteEnrollment(enrollmentId)
+      setUserEnrollments(prev => prev.filter(e => e.enrollmentId !== enrollmentId))
+      toast.success('Asignación eliminada correctamente')
+    } catch (error) {
+      toast.error('Error al eliminar asignación')
     }
   }
 
@@ -284,110 +333,169 @@ export default function AdminUsersPage() {
           </DialogContent>
         </Dialog>
 
-        {/* Edit Dialog */}
+        {/* Edit Dialog with Tabs */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="sm:max-w-[425px]">
-            <form onSubmit={handleUpdateUser}>
+          <DialogContent className="sm:max-w-[500px]">
+            <Tabs defaultValue="profile">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                   <Settings2 className="w-5 h-5 text-primary" />
-                  Editar Colaborador
+                  Gestionar Colaborador
                 </DialogTitle>
                 <DialogDescription>
-                  Modifica la información de <strong>{selectedUser?.displayName}</strong>.
+                  Ajustes de cuenta y seguimiento académico de <strong>{selectedUser?.displayName}</strong>.
                 </DialogDescription>
+                <TabsList className="grid w-full grid-cols-2 mt-4">
+                  <TabsTrigger value="profile">Perfil</TabsTrigger>
+                  <TabsTrigger value="enrollments">Capacitaciones</TabsTrigger>
+                </TabsList>
               </DialogHeader>
-              <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto px-1">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Nombre Completo</label>
-                  <Input 
-                    required 
-                    value={editFormData.displayName}
-                    onChange={(e) => setEditFormData({...editFormData, displayName: e.target.value})}
-                  />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] uppercase font-bold text-muted-foreground">Cédula</label>
-                    <p className="text-sm font-mono bg-slate-50 p-2 rounded border">{selectedUser?.cedula}</p>
-                  </div>
+
+              <TabsContent value="profile" className="py-4">
+                <form onSubmit={handleUpdateUser} className="space-y-4 max-h-[50vh] overflow-y-auto px-1">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium flex items-center gap-2">
-                      <Key className="w-3 h-3 text-amber-500" />
-                      Nuevo PIN
-                    </label>
+                    <label className="text-sm font-medium">Nombre Completo</label>
                     <Input 
-                      type="password"
-                      placeholder="Dejar vacío para mantener" 
-                      maxLength={6}
-                      value={editFormData.newPin}
-                      onChange={(e) => setEditFormData({...editFormData, newPin: e.target.value.replace(/\D/g, '')})}
+                      required 
+                      value={editFormData.displayName}
+                      onChange={(e) => setEditFormData({...editFormData, displayName: e.target.value})}
                     />
                   </div>
-                </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-bold text-muted-foreground">Cédula</label>
+                      <p className="text-sm font-mono bg-slate-50 p-2 rounded border">{selectedUser?.cedula}</p>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium flex items-center gap-2">
+                        <Key className="w-3 h-3 text-amber-500" />
+                        Nuevo PIN
+                      </label>
+                      <Input 
+                        type="password"
+                        placeholder="Sin cambios" 
+                        maxLength={6}
+                        value={editFormData.newPin}
+                        onChange={(e) => setEditFormData({...editFormData, newPin: e.target.value.replace(/\D/g, '')})}
+                      />
+                    </div>
+                  </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Departamento</label>
-                  <Select 
-                    value={editFormData.department} 
-                    onValueChange={v => setEditFormData({...editFormData, department: v as any})}
-                  >
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="produccion">Producción</SelectItem>
-                      <SelectItem value="mantenimiento">Mantenimiento</SelectItem>
-                      <SelectItem value="logistica">Logística</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Departamento</label>
+                    <Select 
+                      value={editFormData.department} 
+                      onValueChange={v => setEditFormData({...editFormData, department: v as any})}
+                    >
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="produccion">Producción</SelectItem>
+                        <SelectItem value="mantenimiento">Mantenimiento</SelectItem>
+                        <SelectItem value="logistica">Logística</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Puesto / Cargo</label>
+                    <Input 
+                      required 
+                      value={editFormData.puesto}
+                      onChange={(e) => setEditFormData({...editFormData, puesto: e.target.value})}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Estado</label>
+                      <Select 
+                        value={editFormData.isActive ? 'active' : 'inactive'} 
+                        onValueChange={v => setEditFormData({...editFormData, isActive: v === 'active'})}
+                      >
+                        <SelectTrigger className={cn(
+                          "font-bold",
+                          editFormData.isActive ? "text-green-600 bg-green-50" : "text-red-600 bg-red-50"
+                        )}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="active" className="text-green-600 font-bold">Activo</SelectItem>
+                          <SelectItem value="inactive" className="text-red-600 font-bold">Inactivo</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Rol</label>
+                      <Select 
+                        value={editFormData.role} 
+                        onValueChange={v => setEditFormData({...editFormData, role: v as any})}
+                      >
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="colaborador">Colaborador</SelectItem>
+                          <SelectItem value="jefatura">Jefatura</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <DialogFooter className="pt-4">
+                    <Button type="submit" disabled={loading} className="w-full">
+                      {loading ? 'Guardando...' : 'Guardar Cambios'}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </TabsContent>
+
+              <TabsContent value="enrollments" className="py-4">
+                <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-1">
+                  {loadingEnrollments ? (
+                    <div className="flex flex-col items-center justify-center py-10 opacity-50">
+                      <Loader2 className="w-6 h-6 animate-spin mb-2" />
+                      <p className="text-xs">Cargando historial...</p>
+                    </div>
+                  ) : userEnrollments.length === 0 ? (
+                    <div className="text-center py-10 border-2 border-dashed rounded-2xl text-muted-foreground">
+                      <BookMarked className="w-8 h-8 mx-auto mb-2 opacity-20" />
+                      <p className="text-sm italic">Sin capacitaciones asignadas.</p>
+                    </div>
+                  ) : (
+                    userEnrollments.map((e) => {
+                      const course = courses.find(c => c.courseId === e.courseId)
+                      return (
+                        <div key={e.enrollmentId} className="flex items-center justify-between p-3 rounded-xl border bg-slate-50 group/item">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-bold truncate pr-2">{course?.title || 'Curso desconocido'}</p>
+                            <div className="flex gap-2 mt-1">
+                              <Badge variant="outline" className={cn(
+                                "text-[9px] px-1.5 h-4",
+                                e.status === 'passed' ? "bg-green-100 text-green-700 border-green-200" :
+                                e.status === 'failed' ? "bg-red-100 text-red-700 border-red-200" :
+                                "bg-amber-100 text-amber-700 border-amber-200"
+                              )}>
+                                {e.status === 'passed' ? 'Aprobado' : e.status === 'failed' ? 'Reprobado' : 'Pendiente'}
+                              </Badge>
+                              <span className="text-[9px] text-muted-foreground uppercase">v{e.versionNumber}</span>
+                            </div>
+                          </div>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover/item:opacity-100 transition-opacity"
+                            onClick={() => handleDeleteEnrollment(e.enrollmentId)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      )
+                    })
+                  )}
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Puesto / Cargo</label>
-                  <Input 
-                    required 
-                    value={editFormData.puesto}
-                    onChange={(e) => setEditFormData({...editFormData, puesto: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Estado del Usuario</label>
-                  <Select 
-                    value={editFormData.isActive ? 'active' : 'inactive'} 
-                    onValueChange={v => setEditFormData({...editFormData, isActive: v === 'active'})}
-                  >
-                    <SelectTrigger className={cn(
-                      "font-bold",
-                      editFormData.isActive ? "text-green-600 bg-green-50" : "text-red-600 bg-red-50"
-                    )}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active" className="text-green-600 font-bold">Activo</SelectItem>
-                      <SelectItem value="inactive" className="text-red-600 font-bold">Inactivo</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Rol</label>
-                  <Select 
-                    value={editFormData.role} 
-                    onValueChange={v => setEditFormData({...editFormData, role: v as any})}
-                  >
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="colaborador">Colaborador</SelectItem>
-                      <SelectItem value="jefatura">Jefatura</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancelar</Button>
-                <Button type="submit" disabled={loading}>
-                  {loading ? 'Guardando...' : 'Actualizar'}
-                </Button>
-              </DialogFooter>
-            </form>
+                <DialogFooter className="pt-6">
+                  <p className="text-[10px] text-muted-foreground italic w-full text-center">
+                    Utilice esta sección para corregir asignaciones erróneas.
+                  </p>
+                </DialogFooter>
+              </TabsContent>
+            </Tabs>
           </DialogContent>
         </Dialog>
       </div>

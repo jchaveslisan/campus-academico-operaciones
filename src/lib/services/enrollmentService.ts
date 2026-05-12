@@ -6,6 +6,7 @@ import {
   getDocs,
   addDoc,
   updateDoc,
+  deleteDoc,
   query,
   where,
   orderBy,
@@ -171,4 +172,7 @@ export async function resetFailedEnrollment(enrollmentId: string, newVersionId: 
     versionId: newVersionId,
     versionNumber: newVersionNumber,
   })
+}
+export async function deleteEnrollment(enrollmentId: string): Promise<void> {
+  await deleteDoc(doc(db, 'enrollments', enrollmentId))
 }
