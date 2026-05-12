@@ -148,6 +148,23 @@ export async function submitQuiz(
   return { passed, score }
 }
 
+export async function addDoubt(enrollmentId: string, doubt: { id: string; userId: string; userName: string; message: string; isReply: boolean }): Promise<void> {
+  const snap = await getDoc(doc(db, 'enrollments', enrollmentId))
+  if (!snap.exists()) return
+  
+  const currentDoubts = snap.data().doubts || []
+  await updateDoc(doc(db, 'enrollments', enrollmentId), {
+    doubts: [...currentDoubts, { ...doubt, timestamp: Timestamp.now() }],
+    isDoubtsResolved: false // Reset resolution if a new doubt is added
+  })
+}
+
+export async function resolveDoubts(enrollmentId: string, resolved: boolean): Promise<void> {
+  await updateDoc(doc(db, 'enrollments', enrollmentId), {
+    isDoubtsResolved: resolved
+  })
+}
+
 export async function resetFailedEnrollment(enrollmentId: string, newVersionId: string, newVersionNumber: number): Promise<void> {
   await updateDoc(doc(db, 'enrollments', enrollmentId), {
     status: 'pending',

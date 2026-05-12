@@ -7,7 +7,7 @@ import { motion } from 'framer-motion'
 import {
   LayoutDashboard, BookOpen, History, Award,
   Users, BookMarked, ClipboardList, BarChart3,
-  LogOut, ChevronRight, Beaker, FileText
+  LogOut, ChevronRight, Beaker, FileText, MessageSquare
 } from 'lucide-react'
 import { toast } from 'sonner'
 import RoleSwitcher from './RoleSwitcher'
@@ -15,13 +15,16 @@ import { cn } from '@/lib/utils'
 
 const personalNav = [
   { href: '/home',         label: 'Mis Cursos',      icon: BookOpen },
+  { href: '/paths',        label: 'Mis Rutas',       icon: ClipboardList },
   { href: '/history',      label: 'Mi Historial',    icon: History },
   { href: '/certificates', label: 'Certificados',    icon: Award },
 ]
 
 const adminNav = [
-  { href: '/admin',              label: 'Panel General',  icon: BarChart3 },
+  { href: '/admin',              label: 'Panel General',   icon: BarChart3 },
   { href: '/admin/courses',      label: 'Cursos',          icon: BookMarked },
+  { href: '/admin/learning-paths', label: 'Rutas de Aprendizaje', icon: ClipboardList },
+  { href: '/admin/doubts',       label: 'Centro de Dudas', icon: MessageSquare },
   { href: '/admin/attendance-generator', label: 'Asistente de Firmas', icon: FileText },
   { href: '/admin/users',        label: 'Colaboradores',   icon: Users },
   { href: '/admin/enrollments',  label: 'Asignaciones',    icon: ClipboardList },

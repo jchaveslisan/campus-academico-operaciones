@@ -13,6 +13,15 @@ export interface EnrollmentDocument {
   expiresAt: Date | null   // calculated from course validityDays upon passing
   attempts: number
   lastAttemptAt: Date | null
+  doubts: Array<{
+    id: string
+    userId: string
+    userName: string
+    message: string
+    timestamp: Date
+    isReply: boolean
+  }>
+  isDoubtsResolved: boolean
 }
 
 export interface AttemptAnswer {
