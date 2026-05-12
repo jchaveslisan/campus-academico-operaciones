@@ -1,5 +1,5 @@
 export type UserRole = 'jefatura' | 'colaborador'
-export type Department = 'produccion' | 'mantenimiento' | 'logistica'
+export type Department = 'produccion' | 'mantenimiento' | 'logistica' | 'calidad' | 'administracion' | 'id'
 
 export interface UserDocument {
   uid: string

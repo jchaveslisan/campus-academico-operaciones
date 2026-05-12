@@ -20,7 +20,7 @@ import {
 import { toast } from 'sonner'
 import Link from 'next/link'
 
-const DEPARTMENTS: Department[] = ['produccion', 'mantenimiento', 'logistica']
+const DEPARTMENTS: Department[] = ['produccion', 'mantenimiento', 'logistica', 'calidad', 'administracion', 'id']
 
 export default function NewCoursePage() {
   const router = useRouter()

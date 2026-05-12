@@ -48,7 +48,7 @@ export default function AdminDashboardPage() {
       const pending = enrollmentsData.filter(e => e.status !== 'passed').length
 
       // Calculate Dept Stats
-      const depts = ['produccion', 'mantenimiento', 'logistica']
+      const depts = ['produccion', 'mantenimiento', 'logistica', 'calidad', 'administracion', 'id']
       const calculatedDeptStats = depts.map(d => {
         const deptUsers = usersData.filter(u => u.department === d).map(u => u.uid)
         const deptEnrollments = enrollmentsData.filter(e => deptUsers.includes(e.userId))

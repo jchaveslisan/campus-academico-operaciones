@@ -296,6 +296,9 @@ export default function AdminUsersPage() {
                       <SelectItem value="produccion">Producción</SelectItem>
                       <SelectItem value="mantenimiento">Mantenimiento</SelectItem>
                       <SelectItem value="logistica">Logística</SelectItem>
+                      <SelectItem value="calidad">Calidad</SelectItem>
+                      <SelectItem value="administracion">Administración</SelectItem>
+                      <SelectItem value="id">I+D</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -393,6 +396,9 @@ export default function AdminUsersPage() {
                         <SelectItem value="produccion">Producción</SelectItem>
                         <SelectItem value="mantenimiento">Mantenimiento</SelectItem>
                         <SelectItem value="logistica">Logística</SelectItem>
+                        <SelectItem value="calidad">Calidad</SelectItem>
+                        <SelectItem value="administracion">Administración</SelectItem>
+                        <SelectItem value="id">I+D</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
