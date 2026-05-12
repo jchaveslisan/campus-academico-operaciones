@@ -111,7 +111,8 @@ export default function AttendanceGeneratorPage() {
       if (!response.ok) throw new Error('Machote no encontrado')
       const existingPdfBytes = await response.arrayBuffer()
       
-      const pdfDoc = await PDFDocument.load(existingPdfBytes)
+      const pdfDoc = await PDFDocument.create()
+      const templateDoc = await PDFDocument.load(existingPdfBytes)
       const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
       const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
       
@@ -122,9 +123,7 @@ export default function AttendanceGeneratorPage() {
       
       // For each chunk of 18 people
       for (let i = 0; i < totalPages; i++) {
-        // Always copy from the clean template bytes for a fresh page
-        const tempDoc = await PDFDocument.load(existingPdfBytes)
-        const [templatePage] = await pdfDoc.copyPages(tempDoc, [0])
+        const [templatePage] = await pdfDoc.copyPages(templateDoc, [0])
         const currentPage = pdfDoc.addPage(templatePage)
 
         const { height } = currentPage.getSize()
