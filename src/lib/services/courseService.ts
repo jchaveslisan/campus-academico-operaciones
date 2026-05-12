@@ -28,10 +28,21 @@ export async function getActiveCourses(): Promise<CourseDocument[]> {
 }
 
 export async function getCourseVersion(versionId: string): Promise<CourseVersionDocument | null> {
-  if (!versionId) return null
   const snap = await getDoc(doc(db, 'courseVersions', versionId))
   if (!snap.exists()) return null
-  return { ...(snap.data() as CourseVersionDocument), versionId: snap.id }
+  const data = snap.data()
+  
+  // Hot Migration: Handle legacy data formats
+  const materials = data.materials || []
+  if (materials.length === 0 && data.documentUrl) {
+    materials.push({ title: 'Documento de Referencia', url: data.documentUrl })
+  }
+
+  return { 
+    ...(data as CourseVersionDocument), 
+    versionId: snap.id,
+    materials // Ensure materials is always an array
+  }
 }
 
 export async function getCourseVersionHistory(courseId: string): Promise<CourseVersionDocument[]> {
