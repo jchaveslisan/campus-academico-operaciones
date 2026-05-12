@@ -519,8 +519,24 @@ export default function CourseDetailPage() {
                       {loading ? <Loader2 className="animate-spin w-5 h-5" /> : <Award className="w-5 h-5" />}
                       Descargar Certificado
                     </Button>
+                    
+                    <div className="pt-4 border-t space-y-4">
+                      <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest text-left">Resumen de Evaluación</p>
+                      <div className="space-y-2 text-left max-h-[300px] overflow-y-auto pr-2 scrollbar-thin">
+                        {version?.questions.map((q, idx) => (
+                          <div key={q.questionId} className="p-3 rounded-xl bg-white border border-green-100 space-y-2">
+                            <p className="text-xs font-bold text-slate-800">{idx + 1}. {q.text}</p>
+                            <div className="flex items-center gap-2 text-[11px] text-green-700 bg-green-50 p-2 rounded-lg font-medium">
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              Respuesta: {q.options.find(o => o.id === q.correctId)?.text}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
                     <Link href="/home" className="w-full">
-                      <Button variant="outline" className="w-full h-12 rounded-xl">Finalizar</Button>
+                      <Button variant="outline" className="w-full h-12 rounded-xl mt-4">Finalizar</Button>
                     </Link>
                   </div>
                 </CardContent>
