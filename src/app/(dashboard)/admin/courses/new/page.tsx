@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext'
 import { createCourseWithVersion } from '@/lib/services/courseService'
 import { CreateCoursePayload, QuizQuestion } from '@/types/course.types'
 import { Department } from '@/types/user.types'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -14,7 +14,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { 
   ArrowLeft, Save, Video, FileText, 
-  HelpCircle, Plus, Trash2, CheckCircle2 
+  HelpCircle, Plus, Trash2, CheckCircle2,
+  Link as LinkIcon, FilePlus
 } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
@@ -33,7 +34,7 @@ export default function NewCoursePage() {
     tags: [],
     validityDays: 365,
     videoUrl: '',
-    documentUrl: '',
+    materials: [{ title: 'Documento SOP', url: '' }],
     changeLog: 'Versión inicial del curso.'
   })
 
@@ -48,6 +49,26 @@ export default function NewCoursePage() {
   const removeQuestion = (idx: number) => {
     if (questions.length <= 1) return
     setQuestions(questions.filter((_, i) => i !== idx))
+  }
+
+  const addMaterial = () => {
+    setFormData(prev => ({
+      ...prev,
+      materials: [...prev.materials, { title: '', url: '' }]
+    }))
+  }
+
+  const removeMaterial = (idx: number) => {
+    setFormData(prev => ({
+      ...prev,
+      materials: prev.materials.filter((_, i) => i !== idx)
+    }))
+  }
+
+  const handleMaterialChange = (idx: number, field: 'title' | 'url', value: string) => {
+    const newMaterials = [...formData.materials]
+    newMaterials[idx][field] = value
+    setFormData({ ...formData, materials: newMaterials })
   }
 
   const handleToggleDept = (dept: Department) => {
@@ -77,7 +98,6 @@ export default function NewCoursePage() {
       return
     }
 
-    // Basic validation for questions
     const invalidQuestion = questions.find(q => !q.text || q.options.some(o => !o.text))
     if (invalidQuestion) {
       toast.error('Complete todas las preguntas y opciones del quiz.')
@@ -116,7 +136,6 @@ export default function NewCoursePage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Basic Info */}
         <div className="md:col-span-2 space-y-6">
           <Card>
             <CardHeader>
@@ -169,34 +188,77 @@ export default function NewCoursePage() {
           </Card>
 
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-lg flex items-center gap-2">
                 <Video className="w-5 h-5 text-primary" />
                 Contenido Multimedia
               </CardTitle>
+              <Button variant="outline" size="sm" onClick={addMaterial} className="gap-2 h-8 text-[10px] uppercase font-bold">
+                <FilePlus className="w-3.5 h-3.5" />
+                Agregar Material
+              </Button>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium">URL del Video (YouTube, Drive, Vimeo)</label>
-                <Input 
-                  placeholder="https://..." 
-                  value={formData.videoUrl}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, videoUrl: e.target.value})}
-                />
-                <p className="text-[10px] text-muted-foreground">Asegúrese de que el video tenga permisos de visualización para los colaboradores.</p>
+                <div className="relative">
+                  <Video className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                  <Input 
+                    placeholder="https://..." 
+                    className="pl-10"
+                    value={formData.videoUrl}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, videoUrl: e.target.value})}
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">URL de Documento SOP (Opcional)</label>
-                <Input 
-                  placeholder="https://..." 
-                  value={formData.documentUrl}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, documentUrl: e.target.value})}
-                />
+              
+              <div className="space-y-4 pt-4 border-t">
+                <label className="text-sm font-medium">Material de Referencia (Links a documentos)</label>
+                <div className="space-y-3">
+                  <AnimatePresence>
+                    {formData.materials.map((m, idx) => (
+                      <motion.div 
+                        key={idx} 
+                        initial={{ opacity: 0, x: -10 }} 
+                        animate={{ opacity: 1, x: 0 }} 
+                        exit={{ opacity: 0, x: 10 }}
+                        className="flex gap-2 items-start"
+                      >
+                        <div className="grid grid-cols-2 gap-2 flex-1">
+                          <Input 
+                            placeholder="Nombre (Ej: Manual PDF)" 
+                            value={m.title}
+                            onChange={(e) => handleMaterialChange(idx, 'title', e.target.value)}
+                            className="h-9 text-xs"
+                          />
+                          <div className="relative">
+                            <LinkIcon className="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-muted-foreground" />
+                            <Input 
+                              placeholder="URL del enlace" 
+                              value={m.url}
+                              onChange={(e) => handleMaterialChange(idx, 'url', e.target.value)}
+                              className="h-9 text-xs pl-8"
+                            />
+                          </div>
+                        </div>
+                        {formData.materials.length > 1 && (
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-9 w-9 text-muted-foreground hover:text-destructive"
+                            onClick={() => removeMaterial(idx)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Quiz Builder */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold flex items-center gap-2">
@@ -262,7 +324,6 @@ export default function NewCoursePage() {
           </div>
         </div>
 
-        {/* Sidebar Config */}
         <div className="space-y-6">
           <Card>
             <CardHeader>

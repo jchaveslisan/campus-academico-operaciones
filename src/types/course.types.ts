@@ -34,7 +34,7 @@ export interface CourseVersionDocument {
   versionNumber: number
   changeLog: string
   videoUrl: string
-  documentUrl: string
+  materials: Array<{ title: string; url: string }>
   questions: QuizQuestion[]
   isActive: boolean
   publishedBy: string
@@ -49,7 +49,7 @@ export interface CreateCoursePayload {
   tags: string[]
   validityDays: number
   videoUrl: string
-  documentUrl: string
+  materials: Array<{ title: string; url: string }>
   questions: Omit<QuizQuestion, 'questionId'>[]
   changeLog: string
 }

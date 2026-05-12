@@ -56,7 +56,7 @@ export async function createCourseWithVersion(
     versionNumber: 1,
     changeLog: payload.changeLog,
     videoUrl: payload.videoUrl,
-    documentUrl: payload.documentUrl,
+    materials: payload.materials,
     questions: payload.questions.map((q) => ({ ...q, questionId: uuidv4() })),
     isActive: true,
     publishedBy,
@@ -89,7 +89,7 @@ export async function createCourseVersion(
   payload: {
     changeLog: string;
     videoUrl: string;
-    documentUrl: string;
+    materials: Array<{ title: string; url: string }>;
     questions: any[];
     versionNumber: number;
     publishedBy: string;
@@ -109,7 +109,7 @@ export async function createCourseVersion(
     versionNumber: payload.versionNumber,
     changeLog: payload.changeLog,
     videoUrl: payload.videoUrl,
-    documentUrl: payload.documentUrl,
+    materials: payload.materials,
     questions: payload.questions,
     isActive: true,
     publishedBy: payload.publishedBy,

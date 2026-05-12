@@ -356,59 +356,103 @@ export default function CourseDetailPage() {
                <Badge variant="outline" className="text-primary border-primary/20 bg-primary/5">Consultas</Badge>
             </div>
 
-            <Card className="shadow-lg border-none bg-slate-50/50">
-              <CardHeader className="pb-3 border-b bg-white">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <HelpCircle className="w-4 h-4 text-primary" />
-                  ¿Tiene alguna duda sobre el procedimiento?
-                </CardTitle>
-                <p className="text-xs text-muted-foreground">Escriba sus dudas para que un líder pueda responderlas. Si no tiene dudas, puede avanzar al cuestionario.</p>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="max-h-[350px] overflow-y-auto p-4 space-y-4 min-h-[100px]">
-                  {enrollment?.doubts && enrollment.doubts.length > 0 ? (
-                    enrollment.doubts.map((d) => (
-                      <div key={d.id} className={cn(
-                        "flex flex-col max-w-[85%] rounded-2xl p-3 text-sm shadow-sm",
-                        d.isReply 
-                          ? "bg-primary text-white ml-auto rounded-tr-none" 
-                          : "bg-white text-slate-800 mr-auto rounded-tl-none border"
-                      )}>
-                        <p className="text-[10px] font-bold uppercase mb-1 opacity-70">
-                          {d.isReply ? 'Líder / Capacitador' : d.userName}
-                        </p>
-                        <p className="leading-relaxed">{d.message}</p>
-                        <p className="text-[9px] mt-2 text-right opacity-60">
-                          {formatDistanceToNow(new Date((d.timestamp as any).toDate?.() ?? d.timestamp), { addSuffix: true, locale: es })}
-                        </p>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="flex flex-col items-center justify-center py-10 text-center opacity-40 grayscale">
-                      <MessageSquare className="w-12 h-12 mb-2" />
-                      <p className="text-sm italic">Aún no se han registrado consultas.</p>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Left Side: Doubts Chat */}
+              <div className="lg:col-span-2 space-y-6">
+                <Card className="shadow-lg border-none bg-slate-50/50">
+                  <CardHeader className="pb-3 border-b bg-white">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <HelpCircle className="w-4 h-4 text-primary" />
+                      ¿Tiene alguna duda sobre el procedimiento?
+                    </CardTitle>
+                    <p className="text-xs text-muted-foreground">Escriba sus dudas para que un líder pueda responderlas. Si no tiene dudas, puede avanzar al cuestionario.</p>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="max-h-[350px] overflow-y-auto p-4 space-y-4 min-h-[100px]">
+                      {enrollment?.doubts && enrollment.doubts.length > 0 ? (
+                        enrollment.doubts.map((d) => (
+                          <div key={d.id} className={cn(
+                            "flex flex-col max-w-[85%] rounded-2xl p-3 text-sm shadow-sm",
+                            d.isReply 
+                              ? "bg-primary text-white ml-auto rounded-tr-none" 
+                              : "bg-white text-slate-800 mr-auto rounded-tl-none border"
+                          )}>
+                            <p className="text-[10px] font-bold uppercase mb-1 opacity-70">
+                              {d.isReply ? 'Líder / Capacitador' : d.userName}
+                            </p>
+                            <p className="leading-relaxed">{d.message}</p>
+                            <p className="text-[9px] mt-2 text-right opacity-60">
+                              {formatDistanceToNow(new Date((d.timestamp as any).toDate?.() ?? d.timestamp), { addSuffix: true, locale: es })}
+                            </p>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="flex flex-col items-center justify-center py-10 text-center opacity-40 grayscale">
+                          <MessageSquare className="w-12 h-12 mb-2" />
+                          <p className="text-sm italic">Aún no se han registrado consultas.</p>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-                
-                <div className="p-4 border-t bg-white flex gap-2">
-                  <Input 
-                    placeholder="Escriba su consulta aquí..." 
-                    className="flex-1 bg-slate-50"
-                    value={newDoubt}
-                    onChange={(e) => setNewDoubt(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSendDoubt()}
-                  />
-                  <Button 
-                    size="icon" 
-                    disabled={sendingDoubt || !newDoubt.trim()} 
-                    onClick={handleSendDoubt}
-                  >
-                    {sendingDoubt ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                    
+                    <div className="p-4 border-t bg-white flex gap-2">
+                      <Input 
+                        placeholder="Escriba su consulta aquí..." 
+                        className="flex-1 bg-slate-50"
+                        value={newDoubt}
+                        onChange={(e) => setNewDoubt(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSendDoubt()}
+                      />
+                      <Button 
+                        size="icon" 
+                        disabled={sendingDoubt || !newDoubt.trim()} 
+                        onClick={handleSendDoubt}
+                      >
+                        {sendingDoubt ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Right Side: Reference Materials */}
+              <div className="space-y-6">
+                <Card className="shadow-lg border-none h-full">
+                  <CardHeader className="bg-slate-50/50 border-b">
+                    <CardTitle className="text-sm font-bold flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-primary" />
+                      Material de Consulta
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4">
+                    <div className="space-y-2">
+                      {version?.materials && version.materials.length > 0 ? (
+                        version.materials.map((m, idx) => (
+                          <a 
+                            key={idx} 
+                            href={m.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:border-primary/30 hover:bg-primary/5 transition-all group"
+                          >
+                            <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                              <ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-primary" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-bold text-slate-700 truncate">{m.title || 'Documento'}</p>
+                              <p className="text-[10px] text-muted-foreground truncate">Clic para abrir</p>
+                            </div>
+                          </a>
+                        ))
+                      ) : (
+                        <div className="text-center py-6 text-muted-foreground">
+                          <p className="text-[10px] italic">No hay documentos adicionales adjuntos.</p>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
 
             <div className="bg-white p-8 rounded-3xl border shadow-sm text-center space-y-6">
                <div className="space-y-2">
