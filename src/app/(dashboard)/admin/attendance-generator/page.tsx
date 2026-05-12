@@ -122,14 +122,10 @@ export default function AttendanceGeneratorPage() {
       
       // For each chunk of 18 people
       for (let i = 0; i < totalPages; i++) {
-        let currentPage
-        if (i === 0) {
-          currentPage = pdfDoc.getPages()[0]
-        } else {
-          // Clone the first page to maintain the template background
-          const [copiedPage] = await pdfDoc.copyPages(pdfDoc, [0])
-          currentPage = pdfDoc.addPage(copiedPage)
-        }
+        // Always copy from the clean template bytes for a fresh page
+        const tempDoc = await PDFDocument.load(existingPdfBytes)
+        const [templatePage] = await pdfDoc.copyPages(tempDoc, [0])
+        const currentPage = pdfDoc.addPage(templatePage)
 
         const { height } = currentPage.getSize()
         const drawText = (text: string, x: number, y: number, size = 9, isBold = false) => {
@@ -166,9 +162,6 @@ export default function AttendanceGeneratorPage() {
           drawText(user.puesto, coords.puestoX, yPos, 7)
           yPos += coords.rowHeight
         })
-
-        // Draw page indicator (optional but helpful)
-        drawText(`Hoja ${i + 1} de ${totalPages}`, 500, 40, 7, false)
       }
 
       const pdfBytes = await pdfDoc.save()

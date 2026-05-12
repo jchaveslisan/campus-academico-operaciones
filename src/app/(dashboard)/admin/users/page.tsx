@@ -336,173 +336,188 @@ export default function AdminUsersPage() {
           </DialogContent>
         </Dialog>
 
-        {/* Edit Dialog Corrected Structure */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Settings2 className="w-5 h-5 text-primary" />
-                Gestionar Colaborador
-              </DialogTitle>
-              <DialogDescription>
-                Ajustes de cuenta y seguimiento académico de <strong>{selectedUser?.displayName}</strong>.
-              </DialogDescription>
-            </DialogHeader>
+          <DialogContent className="sm:max-w-xl p-0 overflow-hidden border-none shadow-2xl">
+            <div className="bg-slate-900 text-white p-6 pb-12">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 text-white">
+                  <Settings2 className="w-5 h-5 text-primary-foreground" />
+                  Gestión de Colaborador
+                </DialogTitle>
+                <DialogDescription className="text-slate-300">
+                  Panel administrativo para <strong>{selectedUser?.displayName}</strong>.
+                </DialogDescription>
+              </DialogHeader>
+            </div>
 
-            <Tabs defaultValue="profile" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="profile">Perfil</TabsTrigger>
-                <TabsTrigger value="enrollments">Capacitaciones</TabsTrigger>
-              </TabsList>
+            <div className="px-6 -mt-8">
+              <Tabs defaultValue="profile" className="w-full">
+                <TabsList className="bg-white/80 backdrop-blur-sm border shadow-sm p-1 h-10 inline-flex w-auto rounded-xl">
+                  <TabsTrigger value="profile" className="rounded-lg px-4 text-xs font-bold data-[state=active]:bg-slate-900 data-[state=active]:text-white">Perfil</TabsTrigger>
+                  <TabsTrigger value="enrollments" className="rounded-lg px-4 text-xs font-bold data-[state=active]:bg-slate-900 data-[state=active]:text-white">Capacitaciones</TabsTrigger>
+                </TabsList>
 
-              <TabsContent value="profile" className="space-y-4 py-4">
-                <form onSubmit={handleUpdateUser} className="space-y-4 max-h-[50vh] overflow-y-auto px-1">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Nombre Completo</label>
-                    <Input 
-                      required 
-                      value={editFormData.displayName}
-                      onChange={(e) => setEditFormData({...editFormData, displayName: e.target.value})}
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-[10px] uppercase font-bold text-muted-foreground">Cédula</label>
-                      <p className="text-sm font-mono bg-slate-50 p-2 rounded border truncate">{selectedUser?.cedula}</p>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium flex items-center gap-2">
-                        <Key className="w-3 h-3 text-amber-500" />
-                        Nuevo PIN
-                      </label>
-                      <Input 
-                        type="password"
-                        placeholder="Sin cambios" 
-                        maxLength={6}
-                        value={editFormData.newPin}
-                        onChange={(e) => setEditFormData({...editFormData, newPin: e.target.value.replace(/\D/g, '')})}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Departamento</label>
-                    <Select 
-                      value={editFormData.department} 
-                      onValueChange={v => setEditFormData({...editFormData, department: v as any})}
-                    >
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="produccion">Producción</SelectItem>
-                        <SelectItem value="mantenimiento">Mantenimiento</SelectItem>
-                        <SelectItem value="logistica">Logística</SelectItem>
-                        <SelectItem value="calidad">Calidad</SelectItem>
-                        <SelectItem value="administracion">Administración</SelectItem>
-                        <SelectItem value="id">I+D</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Puesto / Cargo</label>
-                    <Input 
-                      required 
-                      value={editFormData.puesto}
-                      onChange={(e) => setEditFormData({...editFormData, puesto: e.target.value})}
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Estado</label>
-                      <Select 
-                        value={editFormData.isActive ? 'active' : 'inactive'} 
-                        onValueChange={v => setEditFormData({...editFormData, isActive: v === 'active'})}
-                      >
-                        <SelectTrigger className={cn(
-                          "font-bold",
-                          editFormData.isActive ? "text-green-600 bg-green-50" : "text-red-600 bg-red-50"
-                        )}>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="active" className="text-green-600 font-bold">Activo</SelectItem>
-                          <SelectItem value="inactive" className="text-red-600 font-bold">Inactivo</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Rol</label>
-                      <Select 
-                        value={editFormData.role} 
-                        onValueChange={v => setEditFormData({...editFormData, role: v as any})}
-                      >
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="colaborador">Colaborador</SelectItem>
-                          <SelectItem value="jefatura">Jefatura</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <DialogFooter className="pt-4 px-0">
-                    <Button type="submit" disabled={loading} className="w-full">
-                      {loading ? 'Guardando...' : 'Guardar Cambios'}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </TabsContent>
-
-              <TabsContent value="enrollments" className="py-4">
-                <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-1">
-                  {loadingEnrollments ? (
-                    <div className="flex flex-col items-center justify-center py-10 opacity-50">
-                      <Loader2 className="w-6 h-6 animate-spin mb-2" />
-                      <p className="text-xs">Cargando historial...</p>
-                    </div>
-                  ) : userEnrollments.length === 0 ? (
-                    <div className="text-center py-10 border-2 border-dashed rounded-2xl text-muted-foreground">
-                      <BookMarked className="w-8 h-8 mx-auto mb-2 opacity-20" />
-                      <p className="text-sm italic">Sin capacitaciones asignadas.</p>
-                    </div>
-                  ) : (
-                    userEnrollments.map((e) => {
-                      const course = courses.find(c => c.courseId === e.courseId)
-                      return (
-                        <div key={e.enrollmentId} className="flex items-center justify-between p-3 rounded-xl border bg-slate-50 group/item">
-                          <div className="min-w-0 flex-1">
-                            <p className="text-xs font-bold truncate pr-2">{course?.title || 'Curso desconocido'}</p>
-                            <div className="flex gap-2 mt-1">
-                              <Badge variant="outline" className={cn(
-                                "text-[9px] px-1.5 h-4",
-                                e.status === 'passed' ? "bg-green-100 text-green-700 border-green-200" :
-                                e.status === 'failed' ? "bg-red-100 text-red-700 border-red-200" :
-                                "bg-amber-100 text-amber-700 border-amber-200"
-                              )}>
-                                {e.status === 'passed' ? 'Aprobado' : e.status === 'failed' ? 'Reprobado' : 'Pendiente'}
-                              </Badge>
-                              <span className="text-[9px] text-muted-foreground uppercase">v{e.versionNumber}</span>
-                            </div>
+                <TabsContent value="profile" className="mt-4 pb-6">
+                  <form onSubmit={handleUpdateUser} className="space-y-4">
+                    <div className="max-h-[50vh] overflow-y-auto px-1 space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold uppercase text-slate-500">Nombre Completo</label>
+                        <Input 
+                          required 
+                          className="h-10 border-slate-200 focus:border-slate-900 transition-all"
+                          value={editFormData.displayName}
+                          onChange={(e) => setEditFormData({...editFormData, displayName: e.target.value})}
+                        />
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold uppercase text-slate-500">Cédula</label>
+                          <div className="h-10 flex items-center px-3 bg-slate-50 rounded-lg border border-slate-100 text-sm font-mono text-slate-600">
+                            {selectedUser?.cedula}
                           </div>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover/item:opacity-100 transition-opacity"
-                            onClick={() => handleDeleteEnrollment(e.enrollmentId)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
                         </div>
-                      )
-                    })
-                  )}
-                </div>
-                <div className="pt-6">
-                  <p className="text-[10px] text-muted-foreground italic w-full text-center">
-                    Utilice esta sección para corregir asignaciones erróneas.
-                  </p>
-                </div>
-              </TabsContent>
-            </Tabs>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold uppercase text-slate-500 flex items-center gap-2">
+                            <Key className="w-3 h-3 text-amber-500" />
+                            Nuevo PIN
+                          </label>
+                          <Input 
+                            type="password"
+                            className="h-10 border-slate-200 focus:border-slate-900 transition-all"
+                            placeholder="Sin cambios" 
+                            maxLength={6}
+                            value={editFormData.newPin}
+                            onChange={(e) => setEditFormData({...editFormData, newPin: e.target.value.replace(/\D/g, '')})}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold uppercase text-slate-500">Departamento</label>
+                          <Select 
+                            value={editFormData.department} 
+                            onValueChange={v => setEditFormData({...editFormData, department: v as any})}
+                          >
+                            <SelectTrigger className="h-10 border-slate-200"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="produccion">Producción</SelectItem>
+                              <SelectItem value="mantenimiento">Mantenimiento</SelectItem>
+                              <SelectItem value="logistica">Logística</SelectItem>
+                              <SelectItem value="calidad">Calidad</SelectItem>
+                              <SelectItem value="administracion">Administración</SelectItem>
+                              <SelectItem value="id">I+D</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold uppercase text-slate-500">Puesto / Cargo</label>
+                          <Input 
+                            required 
+                            className="h-10 border-slate-200"
+                            value={editFormData.puesto}
+                            onChange={(e) => setEditFormData({...editFormData, puesto: e.target.value})}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold uppercase text-slate-500">Estado de Cuenta</label>
+                          <Select 
+                            value={editFormData.isActive ? 'active' : 'inactive'} 
+                            onValueChange={v => setEditFormData({...editFormData, isActive: v === 'active'})}
+                          >
+                            <SelectTrigger className={cn(
+                              "h-10 border-slate-200 font-bold",
+                              editFormData.isActive ? "text-green-600" : "text-red-600"
+                            )}>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="active">Activo</SelectItem>
+                              <SelectItem value="inactive">Inactivo</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold uppercase text-slate-500">Rol de Acceso</label>
+                          <Select 
+                            value={editFormData.role} 
+                            onValueChange={v => setEditFormData({...editFormData, role: v as any})}
+                          >
+                            <SelectTrigger className="h-10 border-slate-200"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="colaborador">Colaborador</SelectItem>
+                              <SelectItem value="jefatura">Jefatura</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-4 border-t flex gap-3">
+                      <Button type="button" variant="ghost" onClick={() => setIsEditDialogOpen(false)} className="flex-1">Cancelar</Button>
+                      <Button type="submit" disabled={loading} className="flex-1 bg-slate-900 hover:bg-slate-800 text-white shadow-lg">
+                        {loading ? 'Guardando...' : 'Actualizar Perfil'}
+                      </Button>
+                    </div>
+                  </form>
+                </TabsContent>
+
+                <TabsContent value="enrollments" className="mt-4 pb-6">
+                  <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-2 scrollbar-thin">
+                    {loadingEnrollments ? (
+                      <div className="flex flex-col items-center justify-center py-10 opacity-50">
+                        <Loader2 className="w-6 h-6 animate-spin mb-2" />
+                        <p className="text-xs">Cargando historial...</p>
+                      </div>
+                    ) : userEnrollments.length === 0 ? (
+                      <div className="text-center py-10 border-2 border-dashed rounded-2xl text-muted-foreground">
+                        <BookMarked className="w-8 h-8 mx-auto mb-2 opacity-20" />
+                        <p className="text-sm italic">Sin capacitaciones asignadas.</p>
+                      </div>
+                    ) : (
+                      userEnrollments.map((e) => {
+                        const course = courses.find(c => c.courseId === e.courseId)
+                        return (
+                          <div key={e.enrollmentId} className="flex items-center justify-between p-4 rounded-2xl border bg-slate-50 group/item hover:border-slate-300 transition-all">
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs font-black text-slate-900 truncate pr-2 uppercase tracking-tight">{course?.title || 'Curso desconocido'}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <Badge variant="outline" className={cn(
+                                  "text-[8px] font-bold px-1.5 h-4 uppercase",
+                                  e.status === 'passed' ? "bg-green-100 text-green-700 border-green-200" :
+                                  e.status === 'failed' ? "bg-red-100 text-red-700 border-red-200" :
+                                  "bg-amber-100 text-amber-700 border-amber-200"
+                                )}>
+                                  {e.status === 'passed' ? 'Aprobado' : e.status === 'failed' ? 'Reprobado' : 'Pendiente'}
+                                </Badge>
+                                <span className="text-[10px] text-slate-400 font-mono">v{e.versionNumber}.0</span>
+                              </div>
+                            </div>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 text-slate-300 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover/item:opacity-100 transition-all rounded-full"
+                              onClick={() => handleDeleteEnrollment(e.enrollmentId)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        )
+                      })
+                    )}
+                  </div>
+                  <div className="pt-6 border-t mt-4">
+                    <p className="text-[10px] text-slate-400 italic text-center">
+                      Haga clic en el basurero para retirar una asignación incorrecta.
+                    </p>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
