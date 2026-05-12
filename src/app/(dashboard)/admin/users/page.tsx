@@ -336,25 +336,26 @@ export default function AdminUsersPage() {
           </DialogContent>
         </Dialog>
 
-        {/* Edit Dialog with Tabs */}
+        {/* Edit Dialog Corrected Structure */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <DialogContent className="sm:max-w-[500px]">
-            <Tabs defaultValue="profile">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <Settings2 className="w-5 h-5 text-primary" />
-                  Gestionar Colaborador
-                </DialogTitle>
-                <DialogDescription>
-                  Ajustes de cuenta y seguimiento académico de <strong>{selectedUser?.displayName}</strong>.
-                </DialogDescription>
-                <TabsList className="grid w-full grid-cols-2 mt-4">
-                  <TabsTrigger value="profile">Perfil</TabsTrigger>
-                  <TabsTrigger value="enrollments">Capacitaciones</TabsTrigger>
-                </TabsList>
-              </DialogHeader>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Settings2 className="w-5 h-5 text-primary" />
+                Gestionar Colaborador
+              </DialogTitle>
+              <DialogDescription>
+                Ajustes de cuenta y seguimiento académico de <strong>{selectedUser?.displayName}</strong>.
+              </DialogDescription>
+            </DialogHeader>
 
-              <TabsContent value="profile" className="py-4">
+            <Tabs defaultValue="profile" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="profile">Perfil</TabsTrigger>
+                <TabsTrigger value="enrollments">Capacitaciones</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="profile" className="space-y-4 py-4">
                 <form onSubmit={handleUpdateUser} className="space-y-4 max-h-[50vh] overflow-y-auto px-1">
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Nombre Completo</label>
@@ -368,7 +369,7 @@ export default function AdminUsersPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label className="text-[10px] uppercase font-bold text-muted-foreground">Cédula</label>
-                      <p className="text-sm font-mono bg-slate-50 p-2 rounded border">{selectedUser?.cedula}</p>
+                      <p className="text-sm font-mono bg-slate-50 p-2 rounded border truncate">{selectedUser?.cedula}</p>
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-medium flex items-center gap-2">
@@ -443,7 +444,7 @@ export default function AdminUsersPage() {
                       </Select>
                     </div>
                   </div>
-                  <DialogFooter className="pt-4">
+                  <DialogFooter className="pt-4 px-0">
                     <Button type="submit" disabled={loading} className="w-full">
                       {loading ? 'Guardando...' : 'Guardar Cambios'}
                     </Button>
@@ -495,11 +496,11 @@ export default function AdminUsersPage() {
                     })
                   )}
                 </div>
-                <DialogFooter className="pt-6">
+                <div className="pt-6">
                   <p className="text-[10px] text-muted-foreground italic w-full text-center">
                     Utilice esta sección para corregir asignaciones erróneas.
                   </p>
-                </DialogFooter>
+                </div>
               </TabsContent>
             </Tabs>
           </DialogContent>
